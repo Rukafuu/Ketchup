@@ -1,0 +1,18 @@
+version: 1
+
+project:
+  name: example
+
+providers:
+  git:
+    enabled: true
+    strategy: fast-forward-only
+
+  dependencies:
+    enabled: true
+    auto_install: true
+
+  env:
+    enabled: true
+    source: .env.example
+    target: .env
