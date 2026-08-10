@@ -66,7 +66,7 @@ func (g *Generator) Generate(changes []relevance.RelevantChange, timeAway time.D
 func (r *CatchUpReport) RenderText() string {
 	var sb strings.Builder
 
-	sb.WriteString("🍅 Ketchup Catch-up\n\n")
+	sb.WriteString("Ketchup Catch-up\n\n")
 	sb.WriteString(fmt.Sprintf("You were away for %s.\n\n", r.TimeAway))
 
 	if len(r.RelevantChanges) == 0 {
