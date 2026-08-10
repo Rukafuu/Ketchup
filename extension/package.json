@@ -1,0 +1,142 @@
+{
+  "name": "fastforward",
+  "displayName": "FastForward",
+  "description": "Detect and sync drift between local workspace and expected state",
+  "version": "0.1.0",
+  "publisher": "fastforward",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "SCM Providers"
+  ],
+  "activationEvents": [
+    "onView:fastforwardView",
+    "onCommand:fastforward.status",
+    "onCommand:fastforward.diff",
+    "onCommand:fastforward.sync",
+    "onCommand:fastforward.doctor",
+    "workspaceContains:.ff.yml",
+    "workspaceContains:.ff.yaml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "fastforward-container",
+          "title": "FastForward",
+          "icon": "$(git-pull-request)"
+        }
+      ]
+    },
+    "views": {
+      "fastforward-container": [
+        {
+          "id": "fastforwardView",
+          "name": "FastForward Status",
+          "icon": "$(git-pull-request)",
+          "contextualTitle": "FastForward"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "fastforward.refresh",
+        "title": "Refresh FastForward Status",
+        "icon": "$(refresh)",
+        "category": "FastForward"
+      },
+      {
+        "command": "fastforward.status",
+        "title": "Check Status",
+        "icon": "$(info)",
+        "category": "FastForward"
+      },
+      {
+        "command": "fastforward.diff",
+        "title": "Show Diff",
+        "icon": "$(diff)",
+        "category": "FastForward"
+      },
+      {
+        "command": "fastforward.sync",
+        "title": "Sync Workspace",
+        "icon": "$(sync)",
+        "category": "FastForward"
+      },
+      {
+        "command": "fastforward.doctor",
+        "title": "Run Doctor",
+        "icon": "$(wrench)",
+        "category": "FastForward"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "fastforward.refresh",
+          "when": "view == fastforwardView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "fastforward.diff",
+          "when": "view == fastforwardView && viewItem == provider",
+          "group": "inline"
+        },
+        {
+          "command": "fastforward.sync",
+          "when": "view == fastforwardView && viewItem == finding",
+          "group": "inline"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "fastforward.status",
+          "group": "fastforward"
+        },
+        {
+          "command": "fastforward.sync",
+          "group": "fastforward"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "FastForward",
+      "properties": {
+        "fastforward.cliPath": {
+          "type": "string",
+          "default": "ff",
+          "description": "Path to the FastForward CLI executable"
+        },
+        "fastforward.autoCheckOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically check status when workspace opens"
+        },
+        "fastforward.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notifications for drift detection"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.0"
+  }
+}
