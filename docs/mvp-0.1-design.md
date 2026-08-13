@@ -1,4 +1,4 @@
-# FastForward MVP 0.1 — desenho técnico
+# Ketchup MVP 0.1 — desenho técnico
 
 ## 1. Crítica e recorte da arquitetura
 
@@ -41,7 +41,7 @@ execução de seu domínio. A CLI controla apresentação e interação.
 Branch, upstream, worktree, ponta remota e lockfile podem mudar depois da
 exibição do plano. Cada operação carrega precondições e um fingerprint da
 observação. `Apply` revalida ambos e retorna `STALE_PLAN` se algo mudou. Ele não
-improvisa; o usuário precisa executar `ff sync` novamente.
+improvisa; o usuário precisa executar `ketchup sync` novamente.
 
 ### Segurança Git e atualidade das refs
 
@@ -91,7 +91,7 @@ Categorias da 0.1:
 - `common`: existe nos dois e não aparece no resumo padrão.
 
 “Removida” é ambígua sem estado histórico. Uma chave `local-only` pode ter sido
-removida do template ou ser intencionalmente privada; o FastForward a informa e
+removida do template ou ser intencionalmente privada; o Ketchup a informa e
 nunca a apaga. Uma categoria histórica poderá ser adicionada depois, com
 baseline persistente.
 
@@ -230,10 +230,10 @@ env.manual_update (somente exibição; nunca aplicado)
 
 ## 5. Comandos e exit codes
 
-- `ff status`: resumo e saúde agregada, sem rede ou mutação;
+- `ketchup status`: resumo e saúde agregada, sem rede ou mutação;
 - `ff diff`: findings e detalhes não secretos, sem rede ou mutação;
-- `ff sync`: check, plano, confirmação `[y/N]`, validate/apply e novo check;
-- `ff doctor`: valida config, raiz, Git/repositório, Node e package manager.
+- `ketchup sync`: check, plano, confirmação `[y/N]`, validate/apply e novo check;
+- `ketchup doctor`: valida config, raiz, Git/repositório, Node e package manager.
 
 Stdin não interativo equivale a “não”, até existir uma flag explícita futura.
 Ferramenta ausente só é erro quando o provider habilitado precisa dela.
@@ -249,7 +249,7 @@ Texto do output não é API. Finding codes e exit codes são contratos estáveis
 
 ## 6. Configuração
 
-A CLI procura `.fastforward.yaml` somente na raiz do projeto. `version` é
+A CLI procura `.ketchup.yaml` somente na raiz do projeto. `version` é
 obrigatório e campos desconhecidos são erro, evitando ignorar uma opção de
 segurança digitada incorretamente. Paths são resolvidos dentro da raiz; escapar
 dela é rejeitado.
@@ -259,10 +259,10 @@ Defaults conservadores:
 - providers ficam desabilitados quando não configurados;
 - a única estratégia Git é `fast-forward-only`;
 - `auto_install` permite oferecer uma operação segura, mas nunca dispensa a
-  confirmação do `ff sync`;
+  confirmação do `ketchup sync`;
 - sincronização de ambiente é sempre manual.
 
-O repositório mantém `.fastforward.example.yaml`, não uma configuração ativa,
+O repositório mantém `.ketchup.example.yaml`, não uma configuração ativa,
 para não habilitar providers acidentalmente enquanto a CLI ainda não existe.
 
 ## 7. Estrutura final
@@ -281,7 +281,7 @@ internal/exec/                    command runner injetável
 internal/fs/                      helpers mínimos de filesystem
 testdata/                         fixtures Git/env/package managers
 docs/mvp-0.1-design.md
-.fastforward.example.yaml
+.ketchup.example.yaml
 README.md
 go.mod
 go.sum

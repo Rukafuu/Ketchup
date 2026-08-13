@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fastforward/ff/internal/signals"
+	"github.com/ketchup-ai/ketchup/internal/signals"
 )
 
 // RelevanceSignal representa um sinal de relevância computado

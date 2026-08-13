@@ -1,4 +1,4 @@
-# FastForward Extension - Development Notes
+# Ketchup Extension - Development Notes
 
 ## Build & Test
 
@@ -25,7 +25,7 @@ vsce package
 1. Open this folder in VSCode
 2. Press `F5` to launch Extension Development Host
 3. In the new window, open a workspace with `.ff.yml`
-4. The FastForward icon will appear in the Activity Bar
+4. The Ketchup icon will appear in the Activity Bar
 
 ## Key Features Implemented
 
@@ -35,19 +35,19 @@ vsce package
 - Expandable items for findings
 
 ### Commands
-- `fastforward.refresh` - Refresh tree view
-- `fastforward.status` - Run status and show output
-- `fastforward.diff` - Show detailed diff
-- `fastforward.sync` - Execute sync with notifications
-- `fastforward.doctor` - Validate configuration
+- `ketchup.refresh` - Refresh tree view
+- `ketchup.status` - Run status and show output
+- `ketchup.diff` - Show detailed diff
+- `ketchup.sync` - Execute sync with notifications
+- `ketchup.doctor` - Validate configuration
 
 ### Configuration
-- `fastforward.cliPath` - Custom CLI path (default: "ff")
-- `fastforward.autoCheckOnOpen` - Auto-check on workspace open
-- `fastforward.showNotifications` - Enable/disable notifications
+- `ketchup.cliPath` - Custom CLI path (default: "ff")
+- `ketchup.autoCheckOnOpen` - Auto-check on workspace open
+- `ketchup.showNotifications` - Enable/disable notifications
 
 ### Output Channel
-All command outputs are logged to "FastForward" output channel for debugging.
+All command outputs are logged to "Ketchup" output channel for debugging.
 
 ## Next Steps
 

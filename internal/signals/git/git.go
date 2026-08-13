@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastforward/ff/internal/exec"
-	"github.com/fastforward/ff/internal/signals"
+	"github.com/ketchup-ai/ketchup/internal/exec"
+	"github.com/ketchup-ai/ketchup/internal/signals"
 )
 
 // Provider é o provider Git para sinais do Ketchup

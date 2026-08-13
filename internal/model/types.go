@@ -104,7 +104,7 @@ type FileChange struct {
 // ProviderConfig é a configuração específica de um provider
 type ProviderConfig map[string]any
 
-// Config é a configuração completa do FastForward
+// Config é a configuração completa do Ketchup
 type Config struct {
 	Version   string                    `json:"version"`
 	Providers map[string]ProviderConfig `json:"providers"`

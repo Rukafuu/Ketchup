@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fastforward/ff/internal/config"
-	"github.com/fastforward/ff/internal/model"
-	"github.com/fastforward/ff/internal/providers"
+	"github.com/ketchup-ai/ketchup/internal/config"
+	"github.com/ketchup-ai/ketchup/internal/model"
+	"github.com/ketchup-ai/ketchup/internal/providers"
 )
 
 // Engine orquestra o pipeline de check/plan/apply

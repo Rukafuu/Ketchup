@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastforward/ff/internal/exec"
-	"github.com/fastforward/ff/internal/fs"
-	"github.com/fastforward/ff/internal/model"
-	"github.com/fastforward/ff/internal/providers"
+	"github.com/ketchup-ai/ketchup/internal/exec"
+	"github.com/ketchup-ai/ketchup/internal/fs"
+	"github.com/ketchup-ai/ketchup/internal/model"
+	"github.com/ketchup-ai/ketchup/internal/providers"
 )
 
 // PackageManager representa um gerenciador de pacotes suportado
@@ -24,7 +24,7 @@ const (
 	Yarn PackageManager = "yarn"
 )
 
-// Provider é o provider de Dependencies do FastForward
+// Provider é o provider de Dependencies do Ketchup
 type Provider struct {
 	runner exec.CommandRunner
 }

@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastforward/ff/internal/exec"
-	"github.com/fastforward/ff/internal/model"
-	"github.com/fastforward/ff/internal/providers"
+	"github.com/ketchup-ai/ketchup/internal/exec"
+	"github.com/ketchup-ai/ketchup/internal/model"
+	"github.com/ketchup-ai/ketchup/internal/providers"
 )
 
-// Provider é o provider de Git do FastForward
+// Provider é o provider de Git do Ketchup
 type Provider struct {
 	runner exec.CommandRunner
 }

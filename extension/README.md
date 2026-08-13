@@ -1,6 +1,6 @@
-# FastForward VSCode Extension
+# Ketchup VSCode Extension
 
-Extensão do Visual Studio Code para o FastForward - detecta e sincroniza diferenças entre o ambiente local e o estado esperado do projeto.
+Extensão do Visual Studio Code para o Ketchup - detecta e sincroniza diferenças entre o ambiente local e o estado esperado do projeto.
 
 ## Funcionalidades
 
@@ -13,7 +13,7 @@ Extensão do Visual Studio Code para o FastForward - detecta e sincroniza difere
 ## Instalação
 
 ### Pré-requisitos
-- Ter a CLI do FastForward (`ff`) instalada e no PATH
+- Ter a CLI do Ketchup (`ketchup`) instalada e no PATH
 - VSCode 1.85.0 ou superior
 
 ### Desenvolvimento Local
@@ -41,11 +41,11 @@ vsce package
 
 | Comando | Descrição | Atalho |
 |---------|-----------|--------|
-| `FastForward: Check Status` | Verifica saúde geral do workspace | Palette / Sidebar |
-| `FastForward: Show Diff` | Mostra detalhes das diferenças | Palette / Sidebar |
-| `FastForward: Sync Workspace` | Sincroniza workspace com confirmação | Palette / Explorer |
-| `FastForward: Run Doctor` | Valida configuração e ferramentas | Palette |
-| `FastForward: Refresh Status` | Atualiza painel da sidebar | Botão no painel |
+| `Ketchup: Check Status` | Verifica saúde geral do workspace | Palette / Sidebar |
+| `Ketchup: Show Diff` | Mostra detalhes das diferenças | Palette / Sidebar |
+| `Ketchup: Sync Workspace` | Sincroniza workspace com confirmação | Palette / Explorer |
+| `Ketchup: Run Doctor` | Valida configuração e ferramentas | Palette |
+| `Ketchup: Refresh Status` | Atualiza painel da sidebar | Botão no painel |
 
 ## Configurações
 
@@ -53,18 +53,18 @@ Adicione ao seu `settings.json`:
 
 ```json
 {
-  "fastforward.cliPath": "ff",  // Caminho para CLI se não estiver no PATH
-  "fastforward.autoCheckOnOpen": true,  // Auto-check ao abrir workspace
-  "fastforward.showNotifications": true  // Mostrar notificações
+  "ketchup.cliPath": "ff",  // Caminho para CLI se não estiver no PATH
+  "ketchup.autoCheckOnOpen": true,  // Auto-check ao abrir workspace
+  "ketchup.showNotifications": true  // Mostrar notificações
 }
 ```
 
 ## Uso
 
 1. Abra um projeto com configuração `.ff.yml` ou `.ff.yaml`
-2. O ícone do FastForward aparecerá na Activity Bar (ícone de git-pull-request)
+2. O ícone do Ketchup aparecerá na Activity Bar (ícone de git-pull-request)
 3. Clique para ver o status dos providers
-4. Use os comandos da palette (`Ctrl+Shift+P` → "FastForward") para ações
+4. Use os comandos da palette (`Ctrl+Shift+P` → "Ketchup") para ações
 
 ## Estrutura da Extensão
 
@@ -80,7 +80,7 @@ extension/
 
 ## Integração com a CLI
 
-A extensão executa a CLI `ff` como subprocesso e parseia a saída:
+A extensão executa a CLI `ketchup` como subprocesso e parseia a saída:
 - Tenta primeiro o formato JSON (`--json`)
 - Fallback para parsing do output texto padrão
 - Respeita os exit codes da CLI (0, 1, 2, 3)

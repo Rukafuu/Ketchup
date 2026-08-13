@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fastforward/ff/internal/relevance"
+	"github.com/ketchup-ai/ketchup/internal/relevance"
 )
 
 // CatchUpReport é o relatório final de catch-up
