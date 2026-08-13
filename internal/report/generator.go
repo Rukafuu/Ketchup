@@ -22,6 +22,12 @@ type CatchUpReport struct {
 	// IgnoredCount é quantos eventos foram filtrados por baixa relevância
 	IgnoredCount int `json:"ignored_count"`
 
+	// IgnoredChanges são as mudanças ignoradas (apenas se ShowIgnored for true)
+	IgnoredChanges []relevance.RelevantChange `json:"ignored_changes,omitempty"`
+
+	// ShowIgnored indica se deve incluir detalhes dos eventos ignorados
+	ShowIgnored bool `json:"show_ignored"`
+
 	// GeneratedAt é quando o relatório foi gerado
 	GeneratedAt time.Time `json:"generated_at"`
 }
@@ -36,14 +42,19 @@ func NewGenerator() *Generator {
 
 // Generate cria um relatório de catch-up
 func (g *Generator) Generate(changes []relevance.RelevantChange, timeAway time.Duration) *CatchUpReport {
+	return g.GenerateWithIgnored(changes, timeAway, false)
+}
+
+// GenerateWithIgnored cria um relatório de catch-up com opção de incluir eventos ignorados
+func (g *Generator) GenerateWithIgnored(changes []relevance.RelevantChange, timeAway time.Duration, showIgnored bool) *CatchUpReport {
 	var relevant []relevance.RelevantChange
-	ignored := 0
+	var ignored []relevance.RelevantChange
 
 	for _, change := range changes {
 		if !change.Ignored {
 			relevant = append(relevant, change)
 		} else {
-			ignored++
+			ignored = append(ignored, change)
 		}
 	}
 
@@ -53,17 +64,30 @@ func (g *Generator) Generate(changes []relevance.RelevantChange, timeAway time.D
 		relevant = relevant[:10]
 	}
 
-	return &CatchUpReport{
+	report := &CatchUpReport{
 		TimeAway:        formatDuration(timeAway),
 		TotalEvents:     len(changes),
 		RelevantChanges: relevant,
-		IgnoredCount:    ignored,
+		IgnoredCount:    len(ignored),
+		ShowIgnored:     showIgnored,
 		GeneratedAt:     time.Now(),
 	}
+
+	// Inclui detalhes dos ignorados apenas se solicitado
+	if showIgnored {
+		report.IgnoredChanges = ignored
+	}
+
+	return report
 }
 
 // RenderText renderiza o relatório em formato texto legível
 func (r *CatchUpReport) RenderText() string {
+	return r.RenderTextWithIgnored(false)
+}
+
+// RenderTextWithIgnored renderiza o relatório com opção de mostrar eventos ignorados
+func (r *CatchUpReport) RenderTextWithIgnored(showIgnoredDetails bool) string {
 	var sb strings.Builder
 
 	sb.WriteString("Ketchup Catch-up\n\n")
@@ -99,7 +123,30 @@ func (r *CatchUpReport) RenderText() string {
 		}
 	}
 
+	// Mostra resumo dos eventos ignorados
 	sb.WriteString(fmt.Sprintf("%d other events were ignored as irrelevant.\n", r.IgnoredCount))
+
+	// Se solicitado, mostra detalhes dos eventos ignorados e seus motivos
+	if showIgnoredDetails || r.ShowIgnored {
+		if len(r.IgnoredChanges) > 0 {
+			sb.WriteString("\n--- Ignored Events Details ---\n\n")
+			sb.WriteString(fmt.Sprintf("These %d events were filtered out because their relevance score was below the threshold (<20):\n\n", len(r.IgnoredChanges)))
+			
+			for i, change := range r.IgnoredChanges {
+				sb.WriteString(fmt.Sprintf("%d. %s\n", i+1, change.Event.Title))
+				sb.WriteString(fmt.Sprintf("   Score: %d/100 | Severity: %s\n", change.Signal.Score, change.Signal.Severity))
+				if len(change.Signal.Reasons) > 0 {
+					sb.WriteString("   Partial reasons considered:\n")
+					for _, reason := range change.Signal.Reasons {
+						sb.WriteString(fmt.Sprintf("     - %s\n", reason))
+					}
+				} else {
+					sb.WriteString("   Reason: No significant overlap with your current work context\n")
+				}
+				sb.WriteString("\n")
+			}
+		}
+	}
 
 	return sb.String()
 }
