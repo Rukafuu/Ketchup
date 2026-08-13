@@ -8,15 +8,15 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/fastforward/ff/internal/model"
+	"github.com/ketchup-ai/ketchup/internal/model"
 )
 
 const (
-	configFileName = ".fastforward.yaml"
+	configFileName = ".ketchup.yaml"
 	supportedVersion = "0.1"
 )
 
-// Loader carrega e valida a configuração do FastForward
+// Loader carrega e valida a configuração do Ketchup
 type Loader struct {
 	root string
 }
@@ -26,7 +26,7 @@ func NewLoader(root string) *Loader {
 	return &Loader{root: root}
 }
 
-// Load carrega a configuração do arquivo .fastforward.yaml na raiz
+// Load carrega a configuração do arquivo .ketchup.yaml na raiz
 func (l *Loader) Load() (*model.Config, error) {
 	configPath := filepath.Join(l.root, configFileName)
 	

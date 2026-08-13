@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/fastforward/ff/internal/model"
+	"github.com/ketchup-ai/ketchup/internal/model"
 )
 
 // CheckRequest é a entrada para o Check de um provider

@@ -1,4 +1,4 @@
-module github.com/fastforward/ff
+module github.com/ketchup-ai/ketchup
 
 go 1.19
 

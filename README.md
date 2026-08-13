@@ -1,21 +1,21 @@
 <p align="center">
-  <img src="assets/ketchup-logo.png" alt="FastForward — never run out of sync" width="800">
+  <img src="assets/ketchup-logo.png" alt="Ketchup — never run out of sync" width="800">
 </p>
 
-# FastForward (`ff`) + VSCode Extension 🚀
+# Ketchup (`ketchup`) + VSCode Extension 🚀
 
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.19-blue)](go.mod)
 [![VSCode](https://img.shields.io/badge/vscode-1.85+-blue)](extension/package.json)
 
-**FastForward** é uma ferramenta CLI e extensão VSCode que detecta e sincroniza diferenças (*drift*) entre o ambiente local de desenvolvimento e o estado esperado do projeto.
+**Ketchup** é uma ferramenta CLI e extensão VSCode que detecta e sincroniza diferenças (*drift*) entre o ambiente local de desenvolvimento e o estado esperado do projeto.
 
 ## 🎯 Propósito
 
 Ferramenta conservadora de segurança que:
 - ✅ Detecta diferenças no Git, dependências e variáveis de ambiente
 - ✅ Nunca altera o ambiente durante checks (`status`, `diff`, `doctor`)
-- ✅ Só aplica mudanças via `ff sync` com confirmação explícita
+- ✅ Só aplica mudanças via `ketchup sync` com confirmação explícita
 - ✅ Garante operações **fast-forward only** no Git
 
 ## 📦 Instalação Rápida
@@ -47,10 +47,10 @@ npm run compile
 
 | Comando | Descrição | Exit Codes |
 |---------|-----------|------------|
-| `ff status` | Resumo e saúde agregada (read-only) | 0=limpo, 1=drift |
+| `ketchup status` | Resumo e saúde agregada (read-only) | 0=limpo, 1=drift |
 | `ff diff` | Detalhes do drift (read-only) | 0=limpo, 1=drift |
-| `ff sync` | Check + plano + confirmação + apply | 0=sucesso, 1=manual |
-| `ff doctor` | Valida configuração e ferramentas | 0=ok, 1=falhas |
+| `ketchup sync` | Check + plano + confirmação + apply | 0=sucesso, 1=manual |
+| `ketchup doctor` | Valida configuração e ferramentas | 0=ok, 1=falhas |
 
 ### Exemplo
 
@@ -81,19 +81,19 @@ A extensão oferece:
 
 ### Comandos da Extensão
 
-- `FastForward: Check Status`
-- `FastForward: Show Diff`
-- `FastForward: Sync Workspace`
-- `FastForward: Run Doctor`
-- `FastForward: Refresh Status`
+- `Ketchup: Check Status`
+- `Ketchup: Show Diff`
+- `Ketchup: Sync Workspace`
+- `Ketchup: Run Doctor`
+- `Ketchup: Refresh Status`
 
 ### Configurações
 
 ```json
 {
-  "fastforward.cliPath": "ff",
-  "fastforward.autoCheckOnOpen": true,
-  "fastforward.showNotifications": true
+  "ketchup.cliPath": "ff",
+  "ketchup.autoCheckOnOpen": true,
+  "ketchup.showNotifications": true
 }
 ```
 
@@ -198,4 +198,4 @@ MIT License
 
 ---
 
-**FastForward** - Mantenha seu workspace sempre em sync! 🚀
+**Ketchup** - Mantenha seu workspace sempre em sync! 🚀
