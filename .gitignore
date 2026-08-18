@@ -1,25 +1,51 @@
 ```
 # Compiled and build artifacts
+*.pyc
+__pycache__/
 *.o
 *.obj
+*.exe
+*.dll
+*.so
+*.a
 *.out
-ketchup
+*.class
 
 # Dependencies
-vendor/
-
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment
+node_modules/
+venv/
+.venv/
 .env
 .env.local
-*.env.*
+.env.*
 
-# Editors
+# Build directories
+dist/
+build/
+target/
+*.egg-info/
+
+# Editors and IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
+*.tmp
 
-# Original rules preserved
+# Logs
+*.log
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Cache directories
+.mypy_cache/
+.pytest_cache/
+.gradle/
 ```
