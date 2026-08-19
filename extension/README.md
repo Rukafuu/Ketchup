@@ -21,7 +21,7 @@ npm run compile
 npm run package
 ```
 
-Then in VS Code: **Extensions → ... → Install from VSIX** and select `ketchup-fast-forward-0.2.0.vsix`.
+Then in VS Code: **Extensions → ... → Install from VSIX** and select `ketchup-fast-forward-0.2.1.vsix`.
 
 ### Development
 

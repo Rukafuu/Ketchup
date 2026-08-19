@@ -2,7 +2,7 @@
   "name": "ketchup-fast-forward",
   "displayName": "Ketchup Fast-Forward",
   "description": "Detect and sync drift between local workspace and expected state",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "Reskyume",
   "license": "MIT",
   "repository": {
