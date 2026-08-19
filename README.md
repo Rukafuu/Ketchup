@@ -106,6 +106,8 @@ ketchup status
 ketchup catch-up
 ```
 
+Add the binary to your `PATH`, or configure the extension with `"ketchup.cliPath"`.
+
 ### Extension
 
 ```bash
@@ -245,7 +247,7 @@ Contributions welcome — fork, branch, PR. [MIT](LICENSE)
 
 <br />
 
-### 🎉 Extensão publicada!
+### Extensão publicada!
 
 **[Instalar Ketchup Fast-Forward no VS Code →](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
 
