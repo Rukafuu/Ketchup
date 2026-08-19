@@ -9,7 +9,7 @@
 
 > Keep your workspace always in sync — safely.
 
-## 🎉 Ketchup Fast-Forward is live on the VS Marketplace!
+## Ketchup Fast-Forward is live on the VS Marketplace!
 
 **[Install Ketchup Fast-Forward on VS Code →](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
 
@@ -48,7 +48,7 @@ Add the binary to your `PATH`, or configure the extension with `"ketchup.cliPath
 
 **Install from the Marketplace (recommended):**
 
-👉 **[Ketchup Fast-Forward on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
+**[Ketchup Fast-Forward on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
 
 Or search **"Ketchup Fast-Forward"** in VS Code → Extensions.
 
@@ -249,11 +249,11 @@ See [ROADMAP.md](ROADMAP.md) for completed work and upcoming milestones (tests, 
 
 **Ketchup** é uma ferramenta CLI e extensão VS Code que detecta e sincroniza diferenças (*drift*) entre o ambiente local e o estado esperado do projeto.
 
-### 🎉 Extensão publicada!
+### Extensão publicada!
 
 A **Ketchup Fast-Forward** já está no VS Marketplace:
 
-👉 **[Instalar no VS Code](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
+**[Instalar no VS Code](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
 
 Busque por **"Ketchup Fast-Forward"** nas extensões do VS Code.
 
