@@ -64,10 +64,9 @@
 - macOS (amd64, arm64)
 
 ### Próximos passos imediatos
-1. Publicar v0.3.0 no VS Marketplace
-2. Publicar no Open VSX para instalação nativa no Cursor
-3. Expandir cobertura de testes para >80%
-4. Configurar GitHub Actions (CI)
+1. Publicar no Open VSX para instalação nativa no Cursor
+2. Expandir cobertura de testes para >80%
+3. Configurar GitHub Actions (CI)
 
 ---
 
