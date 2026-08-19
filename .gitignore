@@ -27,6 +27,11 @@ target/
 *.pyc
 __pycache__/
 *.class
+ketchup
+ketchup.exe
+extension/*.vsix
+extension/node_modules/
+extension/out/
 
 # Temporary files
 *.tmp

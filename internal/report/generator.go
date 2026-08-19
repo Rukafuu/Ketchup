@@ -5,31 +5,28 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ketchup-ai/ketchup/internal/model"
 	"github.com/ketchup-ai/ketchup/internal/relevance"
 )
 
+// GenerateOptions controla o conteúdo do relatório de catch-up
+type GenerateOptions struct {
+	Show        string // relevant | all
+	Explain     bool
+	MaxRelevant int
+}
+
 // CatchUpReport é o relatório final de catch-up
 type CatchUpReport struct {
-	// TimeAway é o tempo desde a última sessão
-	TimeAway string `json:"time_away"`
-
-	// TotalEvents é o total de eventos capturados
-	TotalEvents int `json:"total_events"`
-
-	// RelevantChanges são as mudanças relevantes (não ignoradas)
-	RelevantChanges []relevance.RelevantChange `json:"relevant_changes"`
-
-	// IgnoredCount é quantos eventos foram filtrados por baixa relevância
-	IgnoredCount int `json:"ignored_count"`
-
-	// IgnoredChanges são as mudanças ignoradas (apenas se ShowIgnored for true)
-	IgnoredChanges []relevance.RelevantChange `json:"ignored_changes,omitempty"`
-
-	// ShowIgnored indica se deve incluir detalhes dos eventos ignorados
-	ShowIgnored bool `json:"show_ignored"`
-
-	// GeneratedAt é quando o relatório foi gerado
-	GeneratedAt time.Time `json:"generated_at"`
+	TimeAway        string                       `json:"time_away"`
+	TotalEvents     int                          `json:"total_events"`
+	RelevantChanges []relevance.RelevantChange   `json:"relevant_changes"`
+	IgnoredCount    int                          `json:"ignored_count"`
+	IgnoredChanges  []relevance.RelevantChange   `json:"ignored_changes,omitempty"`
+	AllChanges      []relevance.RelevantChange   `json:"all_changes,omitempty"`
+	ShowMode        string                       `json:"show_mode"`
+	Explain         bool                         `json:"explain"`
+	GeneratedAt     time.Time                    `json:"generated_at"`
 }
 
 // Generator gera relatórios de catch-up
@@ -40,28 +37,28 @@ func NewGenerator() *Generator {
 	return &Generator{}
 }
 
-// Generate cria um relatório de catch-up
-func (g *Generator) Generate(changes []relevance.RelevantChange, timeAway time.Duration) *CatchUpReport {
-	return g.GenerateWithIgnored(changes, timeAway, false)
-}
+// Generate cria um relatório de catch-up com opções explícitas
+func (g *Generator) Generate(changes []relevance.RelevantChange, timeAway time.Duration, opts GenerateOptions) *CatchUpReport {
+	if opts.Show == "" {
+		opts.Show = model.CatchUpShowRelevant
+	}
+	if opts.MaxRelevant == 0 {
+		opts.MaxRelevant = model.DefaultCatchUpConfig().MaxRelevant
+	}
 
-// GenerateWithIgnored cria um relatório de catch-up com opção de incluir eventos ignorados
-func (g *Generator) GenerateWithIgnored(changes []relevance.RelevantChange, timeAway time.Duration, showIgnored bool) *CatchUpReport {
 	var relevant []relevance.RelevantChange
 	var ignored []relevance.RelevantChange
 
 	for _, change := range changes {
-		if !change.Ignored {
-			relevant = append(relevant, change)
-		} else {
+		if change.Ignored {
 			ignored = append(ignored, change)
+		} else {
+			relevant = append(relevant, change)
 		}
 	}
 
-	// Ordena por severidade e score (já vem ordenado da engine)
-	// Limita a 10 mudanças relevantes para não sobrecarregar
-	if len(relevant) > 10 {
-		relevant = relevant[:10]
+	if opts.MaxRelevant > 0 && len(relevant) > opts.MaxRelevant {
+		relevant = relevant[:opts.MaxRelevant]
 	}
 
 	report := &CatchUpReport{
@@ -69,13 +66,14 @@ func (g *Generator) GenerateWithIgnored(changes []relevance.RelevantChange, time
 		TotalEvents:     len(changes),
 		RelevantChanges: relevant,
 		IgnoredCount:    len(ignored),
-		ShowIgnored:     showIgnored,
+		ShowMode:        opts.Show,
+		Explain:         opts.Explain,
 		GeneratedAt:     time.Now(),
 	}
 
-	// Inclui detalhes dos ignorados apenas se solicitado
-	if showIgnored {
+	if opts.Show == model.CatchUpShowAll {
 		report.IgnoredChanges = ignored
+		report.AllChanges = append(append([]relevance.RelevantChange{}, relevant...), ignored...)
 	}
 
 	return report
@@ -83,75 +81,118 @@ func (g *Generator) GenerateWithIgnored(changes []relevance.RelevantChange, time
 
 // RenderText renderiza o relatório em formato texto legível
 func (r *CatchUpReport) RenderText() string {
-	return r.RenderTextWithIgnored(false)
+	return r.render(false)
 }
 
-// RenderTextWithIgnored renderiza o relatório com opção de mostrar eventos ignorados
-func (r *CatchUpReport) RenderTextWithIgnored(showIgnoredDetails bool) string {
+// RenderTextWithExplain renderiza com detalhes de score e motivos
+func (r *CatchUpReport) RenderTextWithExplain() string {
+	return r.render(true)
+}
+
+func (r *CatchUpReport) render(forceExplain bool) string {
+	explain := r.Explain || forceExplain
 	var sb strings.Builder
 
 	sb.WriteString("Ketchup Catch-up\n\n")
 	sb.WriteString(fmt.Sprintf("You were away for %s.\n\n", r.TimeAway))
 
+	if r.ShowMode == model.CatchUpShowAll {
+		r.renderAllChanges(&sb, explain)
+		return sb.String()
+	}
+
+	r.renderRelevantOnly(&sb, explain)
+	return sb.String()
+}
+
+func (r *CatchUpReport) renderRelevantOnly(sb *strings.Builder, explain bool) {
 	if len(r.RelevantChanges) == 0 {
 		sb.WriteString("No significant changes detected since your last session.\n\n")
 	} else {
 		sb.WriteString(fmt.Sprintf("%d changes matter to your current work:\n\n", len(r.RelevantChanges)))
-
-		// Agrupa por severidade
-		bySeverity := make(map[string][]relevance.RelevantChange)
-		for _, change := range r.RelevantChanges {
-			sev := change.Signal.Severity
-			bySeverity[sev] = append(bySeverity[sev], change)
-		}
-
-		// Renderiza na ordem de severidade
-		for _, severity := range []string{"CRITICAL", "HIGH", "MEDIUM", "LOW"} {
-			changes := bySeverity[severity]
-			if len(changes) == 0 {
-				continue
-			}
-
-			sb.WriteString(fmt.Sprintf("%s\n", severity))
-			for _, change := range changes {
-				sb.WriteString(fmt.Sprintf("%s\n", change.Event.Title))
-				for _, reason := range change.Signal.Reasons {
-					sb.WriteString(fmt.Sprintf("  → %s\n", reason))
-				}
-				sb.WriteString("\n")
-			}
-		}
+		r.renderChangesBySeverity(sb, r.RelevantChanges, "RELEVANT", explain)
 	}
 
-	// Mostra resumo dos eventos ignorados
-	sb.WriteString(fmt.Sprintf("%d other events were ignored as irrelevant.\n", r.IgnoredCount))
-
-	// Se solicitado, mostra detalhes dos eventos ignorados e seus motivos
-	if showIgnoredDetails || r.ShowIgnored {
-		if len(r.IgnoredChanges) > 0 {
-			sb.WriteString("\n--- Ignored Events Details ---\n\n")
-			sb.WriteString(fmt.Sprintf("These %d events were filtered out because their relevance score was below the threshold (<20):\n\n", len(r.IgnoredChanges)))
-			
-			for i, change := range r.IgnoredChanges {
-				sb.WriteString(fmt.Sprintf("%d. %s\n", i+1, change.Event.Title))
-				sb.WriteString(fmt.Sprintf("   Score: %d/100 | Severity: %s\n", change.Signal.Score, change.Signal.Severity))
-				if len(change.Signal.Reasons) > 0 {
-					sb.WriteString("   Partial reasons considered:\n")
-					for _, reason := range change.Signal.Reasons {
-						sb.WriteString(fmt.Sprintf("     - %s\n", reason))
-					}
-				} else {
-					sb.WriteString("   Reason: No significant overlap with your current work context\n")
-				}
-				sb.WriteString("\n")
-			}
-		}
+	if r.IgnoredCount > 0 {
+		sb.WriteString(fmt.Sprintf("\n%d other events were ignored as irrelevant.\n", r.IgnoredCount))
+		sb.WriteString("Tip: set catchup.show: all in .ketchup.yaml or run ketchup catch-up --show all\n")
 	}
-
-	return sb.String()
 }
 
-// formatDuration formata duration de forma legível
+func (r *CatchUpReport) renderAllChanges(sb *strings.Builder, explain bool) {
+	total := len(r.AllChanges)
+	if total == 0 {
+		sb.WriteString("No changes detected since your last session.\n")
+		return
+	}
+
+	sb.WriteString(fmt.Sprintf(
+		"Showing all %d events (%d relevant, %d ignored):\n\n",
+		total,
+		len(r.RelevantChanges),
+		r.IgnoredCount,
+	))
+
+	for i, change := range r.AllChanges {
+		tag := "RELEVANT"
+		if change.Ignored {
+			tag = "IGNORED"
+		}
+		sb.WriteString(fmt.Sprintf("%d. [%s · %s · %d/100] %s\n",
+			i+1,
+			tag,
+			change.Signal.Severity,
+			change.Signal.Score,
+			change.Event.Title,
+		))
+		r.renderChangeReasons(sb, change, explain)
+		sb.WriteString("\n")
+	}
+}
+
+func (r *CatchUpReport) renderChangesBySeverity(sb *strings.Builder, changes []relevance.RelevantChange, tag string, explain bool) {
+	bySeverity := make(map[string][]relevance.RelevantChange)
+	for _, change := range changes {
+		sev := change.Signal.Severity
+		bySeverity[sev] = append(bySeverity[sev], change)
+	}
+
+	for _, severity := range []string{"CRITICAL", "HIGH", "MEDIUM", "LOW"} {
+		group := bySeverity[severity]
+		if len(group) == 0 {
+			continue
+		}
+
+		sb.WriteString(fmt.Sprintf("%s\n", severity))
+		for _, change := range group {
+			if explain {
+				sb.WriteString(fmt.Sprintf("[%s · %d/100] %s\n", tag, change.Signal.Score, change.Event.Title))
+			} else {
+				sb.WriteString(fmt.Sprintf("%s\n", change.Event.Title))
+			}
+			r.renderChangeReasons(sb, change, explain)
+			sb.WriteString("\n")
+		}
+	}
+}
+
+func (r *CatchUpReport) renderChangeReasons(sb *strings.Builder, change relevance.RelevantChange, explain bool) {
+	if len(change.Signal.Reasons) > 0 {
+		for _, reason := range change.Signal.Reasons {
+			sb.WriteString(fmt.Sprintf("  → %s\n", reason))
+		}
+	} else if change.Ignored {
+		sb.WriteString("  → No significant overlap with your current work context\n")
+	}
+
+	if explain && len(change.Contributions) > 0 {
+		sb.WriteString("  Scoring breakdown:\n")
+		for _, contribution := range change.Contributions {
+			sb.WriteString(fmt.Sprintf("    • %s (%+d): %s\n", contribution.Rule, contribution.Delta, contribution.Reason))
+		}
+	}
+}
+
 func formatDuration(d time.Duration) string {
 	days := int(d.Hours() / 24)
 	hours := int(d.Hours()) % 24

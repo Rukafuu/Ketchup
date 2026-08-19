@@ -4,6 +4,16 @@
   "description": "Detect and sync drift between local workspace and expected state",
   "version": "0.2.0",
   "publisher": "ketchup-ai",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ketchup-ai/ketchup.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ketchup-ai/ketchup/issues"
+  },
+  "homepage": "https://github.com/ketchup-ai/ketchup#readme",
+  "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -76,8 +86,14 @@
       },
       {
         "command": "ketchup.catchup",
-        "title": "Catch Up Branch",
+        "title": "Catch Up",
         "icon": "$(arrow-up)",
+        "category": "Ketchup"
+      },
+      {
+        "command": "ketchup.catchup.all",
+        "title": "Catch Up (Show All Changes)",
+        "icon": "$(list-unordered)",
         "category": "Ketchup"
       },
       {
@@ -168,6 +184,21 @@
           "type": "boolean",
           "default": true,
           "description": "Show Ketchup status in the status bar"
+        },
+        "ketchup.catchUpShow": {
+          "type": "string",
+          "default": "relevant",
+          "enum": ["relevant", "all"],
+          "enumDescriptions": [
+            "Show only changes Ketchup considers relevant to your current work",
+            "Show all changes including ignored/irrelevant events"
+          ],
+          "description": "Catch-up display mode (overridden by ketchup.catchup.show in .ketchup.yaml when CLI reads project config)"
+        },
+        "ketchup.catchUpExplain": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include relevance scores and scoring breakdown in catch-up output"
         }
       }
     }

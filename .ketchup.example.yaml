@@ -3,6 +3,12 @@ version: 1
 project:
   name: example
 
+# Catch-up controls what you see when running `ketchup catch-up`
+catchup:
+  show: relevant      # relevant | all
+  explain: false      # include scores and scoring breakdown
+  max_relevant: 10    # cap relevant items (0 = no limit)
+
 providers:
   git:
     enabled: true

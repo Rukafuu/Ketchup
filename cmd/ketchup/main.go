@@ -6,9 +6,6 @@ import (
 "fmt"
 "log"
 "os"
-"path/filepath"
-"sort"
-"strings"
 "time"
 
 "github.com/ketchup-ai/ketchup/internal/config"
@@ -84,6 +81,12 @@ Commands:
   catch-up    Explain what happened since last session
   update      Check for and install updates
 
+Catch-up options:
+  --show relevant|all   What to display (overrides catchup.show in config)
+  --show-ignored        Alias for --show all
+  --explain             Include relevance scores and scoring breakdown
+  --json                Output as JSON
+
 Options:
   --help, -h     Show this help message
   --version, -v  Show version
@@ -91,6 +94,7 @@ Options:
 Examples:
   ketchup status
   ketchup catch-up --explain
+  ketchup catch-up --show all
   ketchup catch-up --show-ignored
   ketchup catch-up --json
   ketchup version --json
@@ -195,7 +199,7 @@ return 0
 }
 
 func runStatus(ctx context.Context, root string, args []string) int {
-cfg, eng, err := setupEngine(root)
+	_, eng, err := setupEngine(root)
 if err != nil {
 fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 os.Exit(2)
@@ -234,7 +238,7 @@ return 0
 }
 
 func runDiff(ctx context.Context, root string, args []string) int {
-cfg, eng, err := setupEngine(root)
+	_, eng, err := setupEngine(root)
 if err != nil {
 fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 os.Exit(2)
@@ -269,7 +273,7 @@ return 0
 }
 
 func runSync(ctx context.Context, root string, args []string) int {
-cfg, eng, err := setupEngine(root)
+	_, eng, err := setupEngine(root)
 if err != nil {
 fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 os.Exit(2)
@@ -307,7 +311,7 @@ return 1
 }
 
 func runDoctor(ctx context.Context, root string, args []string) int {
-cfg, eng, err := setupEngine(root)
+	_, eng, err := setupEngine(root)
 if err != nil {
 fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 os.Exit(2)
@@ -342,72 +346,106 @@ return 0
 }
 
 func runCatchUp(ctx context.Context, root string, args []string) int {
-// Load session
-store := session.NewStore(root)
-lastSession, err := store.Load()
+	cfg, err := config.NewLoader(root).Load()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		return 2
+	}
 
-var since signals.LastSessionInfo
-if err == nil && lastSession != nil {
-since = signals.LastSessionInfo{
-Timestamp:  lastSession.LastActivity,
-HeadCommit: lastSession.HeadCommit,
-Branch:     lastSession.Branch,
+	opts := resolveCatchUpOptions(cfg.CatchUp, args)
+
+	store := session.NewStore(root)
+	lastSession, err := store.Load()
+
+	var since signals.LastSessionInfo
+	if err == nil && lastSession != nil {
+		since = signals.LastSessionInfo{
+			Timestamp:  lastSession.LastActivity,
+			HeadCommit: lastSession.HeadCommit,
+			Branch:     lastSession.Branch,
+		}
+	}
+
+	var allEvents []signals.NormalizedEvent
+
+	gitSignalProvider := gitsignals.NewProvider(nil)
+	events, err := gitSignalProvider.FetchEvents(ctx, root, since)
+	if err == nil {
+		allEvents = append(allEvents, events...)
+	}
+
+	currentFile := getCurrentFile()
+	recentFiles := getRecentFiles(root)
+
+	relEngine := relevance.NewEngine()
+	relEngine.CurrentFiles = []string{}
+	if currentFile != "" {
+		relEngine.CurrentFiles = []string{currentFile}
+	}
+	relEngine.RecentFiles = recentFiles
+
+	changes := relEngine.ComputeRelevanceWithContributions(allEvents)
+
+	gen := report.NewGenerator()
+	timeAway := time.Since(since.Timestamp)
+	if timeAway < 0 {
+		timeAway = 0
+	}
+
+	rep := gen.Generate(changes, timeAway, report.GenerateOptions{
+		Show:        opts.Show,
+		Explain:     opts.Explain,
+		MaxRelevant: opts.MaxRelevant,
+	})
+
+	if opts.JSON {
+		output, _ := json.MarshalIndent(rep, "", "  ")
+		fmt.Println(string(output))
+	} else {
+		fmt.Println(rep.RenderText())
+	}
+
+	headCommit := getCurrentHeadCommit(ctx, root)
+	branch := getCurrentBranch(ctx, root)
+	if headCommit != "" || branch != "" {
+		store.UpdateOrCreate(root, headCommit, branch)
+	}
+
+	return 0
 }
+
+type catchUpOptions struct {
+	Show        string
+	Explain     bool
+	MaxRelevant int
+	JSON        bool
 }
 
-// Fetch events from all signal providers
-var allEvents []signals.NormalizedEvent
+func resolveCatchUpOptions(cfg model.CatchUpConfig, args []string) catchUpOptions {
+	opts := catchUpOptions{
+		Show:        cfg.Show,
+		Explain:     cfg.Explain,
+		MaxRelevant: cfg.MaxRelevant,
+		JSON:        containsArg(args, "--json"),
+	}
 
-// Git signal provider
-gitSignalProvider := gitsignals.NewProvider(nil)
-events, err := gitSignalProvider.FetchEvents(ctx, root, since)
-if err == nil {
-allEvents = append(allEvents, events...)
-}
+	if containsArg(args, "--show-ignored") || containsArg(args, "--all") {
+		opts.Show = model.CatchUpShowAll
+	}
+	if show := getArgValue(args, "--show"); show != "" {
+		opts.Show = show
+	}
+	if containsArg(args, "--explain") {
+		opts.Explain = true
+	}
 
-// Get workspace context for relevance
-currentFile := getCurrentFile()
-recentFiles := getRecentFiles(root)
+	switch opts.Show {
+	case model.CatchUpShowRelevant, model.CatchUpShowAll:
+	default:
+		opts.Show = model.CatchUpShowRelevant
+	}
 
-// Compute relevance
-relEngine := relevance.NewEngine()
-relEngine.CurrentFiles = []string{}
-if currentFile != "" {
-relEngine.CurrentFiles = []string{currentFile}
-}
-relEngine.RecentFiles = recentFiles
-
-changes := relEngine.ComputeRelevanceWithContributions(allEvents)
-
-// Generate report
-gen := report.NewGenerator()
-timeAway := time.Since(since.Timestamp)
-if timeAway < 0 {
-timeAway = 0
-}
-
-showIgnored := containsArg(args, "--show-ignored")
-rep := gen.GenerateWithContributions(changes, timeAway, showIgnored)
-
-// Output
-jsonOutput := containsArg(args, "--json")
-showExplain := containsArg(args, "--explain")
-
-if jsonOutput {
-output, _ := json.MarshalIndent(rep, "", "  ")
-fmt.Println(string(output))
-} else {
-fmt.Println(rep.RenderTextWithExplanation(showExplain))
-}
-
-// Update session
-headCommit := getCurrentHeadCommit(ctx, root)
-branch := getCurrentBranch(ctx, root)
-if headCommit != "" || branch != "" {
-store.UpdateOrCreate(root, headCommit, branch)
-}
-
-return 0
+	return opts
 }
 
 func setupEngine(root string) (*model.Config, *engine.Engine, error) {
@@ -434,12 +472,21 @@ return cfg, eng, nil
 }
 
 func containsArg(args []string, target string) bool {
-for _, arg := range args {
-if arg == target {
-return true
+	for _, arg := range args {
+		if arg == target {
+			return true
+		}
+	}
+	return false
 }
-}
-return false
+
+func getArgValue(args []string, flag string) string {
+	for i, arg := range args {
+		if arg == flag && i+1 < len(args) {
+			return args[i+1]
+		}
+	}
+	return ""
 }
 
 func getCurrentFile() string {

@@ -104,8 +104,34 @@ type FileChange struct {
 // ProviderConfig é a configuração específica de um provider
 type ProviderConfig map[string]any
 
+const (
+	CatchUpShowRelevant = "relevant"
+	CatchUpShowAll      = "all"
+)
+
+// CatchUpConfig controla o que o comando catch-up exibe
+type CatchUpConfig struct {
+	// Show: "relevant" (padrão) ou "all"
+	Show string `json:"show" yaml:"show"`
+	// Explain inclui score e motivos de relevância para cada mudança
+	Explain bool `json:"explain" yaml:"explain"`
+	// MaxRelevant limita quantas mudanças relevantes aparecem (0 = sem limite)
+	MaxRelevant int `json:"max_relevant" yaml:"max_relevant"`
+}
+
+// DefaultCatchUpConfig retorna os defaults do catch-up
+func DefaultCatchUpConfig() CatchUpConfig {
+	return CatchUpConfig{
+		Show:        CatchUpShowRelevant,
+		Explain:     false,
+		MaxRelevant: 10,
+	}
+}
+
 // Config é a configuração completa do Ketchup
 type Config struct {
-	Version   string                    `json:"version"`
-	Providers map[string]ProviderConfig `json:"providers"`
+	Version   string                    `json:"version" yaml:"version"`
+	Project   map[string]any            `json:"project,omitempty" yaml:"project,omitempty"`
+	CatchUp   CatchUpConfig             `json:"catchup,omitempty" yaml:"catchup,omitempty"`
+	Providers map[string]ProviderConfig `json:"providers" yaml:"providers"`
 }

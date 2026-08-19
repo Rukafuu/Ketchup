@@ -1,97 +1,76 @@
-# Ketchup VSCode Extension
+# Ketchup — VS Code Extension
 
-Extensão do Visual Studio Code para o Ketchup - detecta e sincroniza diferenças entre o ambiente local e o estado esperado do projeto.
+Visual Studio Code extension for [Ketchup](https://github.com/ketchup-ai/ketchup): detect and sync drift between your local workspace and the expected project state.
 
-## Funcionalidades
+## Requirements
 
-- **Painel na Activity Bar**: Visualize o status dos providers (Git, Dependências, Variáveis de Ambiente) diretamente na sidebar
-- **Comandos Rápidos**: Execute `status`, `diff`, `sync` e `doctor` sem sair do editor
-- **Notificações Inteligentes**: Receba alertas quando drift for detectado ou sync for concluído
-- **Auto-check**: Verificação automática ao abrir o workspace
-- **Output Channel**: Logs detalhados em um canal dedicado no VSCode
+- VS Code 1.85.0 or later
+- [Ketchup CLI](https://github.com/ketchup-ai/ketchup) installed and available on `PATH` (or configured via `ketchup.cliPath`)
+- A workspace with `.ketchup.yml` or `.ketchup.yaml`
 
-## Instalação
+## Install
 
-### Pré-requisitos
-- Ter a CLI do Ketchup (`ketchup`) instalada e no PATH
-- VSCode 1.85.0 ou superior
+### From VSIX
 
-### Desenvolvimento Local
-
-1. Instale as dependências:
 ```bash
 cd extension
 npm install
-```
-
-2. Compile o TypeScript:
-```bash
 npm run compile
+npm run package
 ```
 
-3. No VSCode, pressione `F5` para rodar a extensão em modo de desenvolvimento
+Then in VS Code: **Extensions → ... → Install from VSIX** and select `ketchup-0.2.0.vsix`.
 
-4. Para empacotar:
-```bash
-npm install -g vsce
-vsce package
-```
+### Development
 
-## Comandos Disponíveis
+1. `npm install && npm run compile`
+2. Open the `extension/` folder in VS Code
+3. Press `F5` to launch the Extension Development Host
+4. Open a project that contains `.ketchup.yml`
 
-| Comando | Descrição | Atalho |
-|---------|-----------|--------|
-| `Ketchup: Check Status` | Verifica saúde geral do workspace | Palette / Sidebar |
-| `Ketchup: Show Diff` | Mostra detalhes das diferenças | Palette / Sidebar |
-| `Ketchup: Sync Workspace` | Sincroniza workspace com confirmação | Palette / Explorer |
-| `Ketchup: Run Doctor` | Valida configuração e ferramentas | Palette |
-| `Ketchup: Refresh Status` | Atualiza painel da sidebar | Botão no painel |
+## Features
 
-## Configurações
+- **Sidebar panel** — live status for Git, Dependencies, and Environment providers
+- **Status bar** — clean / drift / error indicator with issue count
+- **Quick-fix actions** — contextual actions on findings (catch-up, sync)
+- **Auto-check** — runs status when the workspace opens
+- **Output channel** — detailed logs under "Ketchup"
+- **CLI update check** — optional startup check for new core releases
 
-Adicione ao seu `settings.json`:
+## Commands
 
-```json
-{
-  "ketchup.cliPath": "ff",  // Caminho para CLI se não estiver no PATH
-  "ketchup.autoCheckOnOpen": true,  // Auto-check ao abrir workspace
-  "ketchup.showNotifications": true  // Mostrar notificações
-}
-```
+| Command | CLI equivalent |
+|---------|----------------|
+| Ketchup: Check Status | `ketchup status` |
+| Ketchup: Show Diff | `ketchup diff` |
+| Ketchup: Sync Workspace | `ketchup sync` |
+| Ketchup: Run Doctor | `ketchup doctor` |
+| Ketchup: Catch Up | `ketchup catch-up` (uses settings / project config) |
+| Ketchup: Catch Up (Show All Changes) | `ketchup catch-up --show all` |
+| Ketchup: Check for Updates | `ketchup update --check` |
+| Ketchup: Refresh Status | refreshes sidebar |
 
-## Uso
+## Settings
 
-1. Abra um projeto com configuração `.ff.yml` ou `.ff.yaml`
-2. O ícone do Ketchup aparecerá na Activity Bar (ícone de git-pull-request)
-3. Clique para ver o status dos providers
-4. Use os comandos da palette (`Ctrl+Shift+P` → "Ketchup") para ações
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `ketchup.cliPath` | `ketchup` | Path to the CLI executable |
+| `ketchup.autoCheckOnOpen` | `true` | Auto-run status on workspace open |
+| `ketchup.showNotifications` | `true` | Show drift/completion notifications |
+| `ketchup.showStatusBar` | `true` | Show status bar indicator |
+| `ketchup.autoUpdate` | `true` | Check for CLI updates on startup |
+| `ketchup.catchUpShow` | `relevant` | Catch-up mode: `relevant` or `all` |
+| `ketchup.catchUpExplain` | `false` | Include relevance scores in catch-up output |
 
-## Estrutura da Extensão
+## How it works
 
-```
-extension/
-├── src/
-│   └── extension.ts      # Código principal da extensão
-├── out/                   # Compilado (gerado automaticamente)
-├── package.json          # Manifesto da extensão
-├── tsconfig.json         # Configuração TypeScript
-└── README.md             # Esta documentação
-```
+The extension runs the Ketchup CLI as a subprocess:
 
-## Integração com a CLI
-
-A extensão executa a CLI `ketchup` como subprocesso e parseia a saída:
-- Tenta primeiro o formato JSON (`--json`)
-- Fallback para parsing do output texto padrão
-- Respeita os exit codes da CLI (0, 1, 2, 3)
-
-## Contribuindo
-
-1. Fork o repositório
-2. Crie uma branch para sua feature
-3. Teste com `npm run watch` durante desenvolvimento
-4. Envie um PR
+1. Tries JSON output first (`status --json`)
+2. Falls back to text parsing if JSON is unavailable
+3. Respects CLI exit codes (0=clean, 1=drift, 2=config error, 3=check failed)
+4. Passes `KETCHUP_CURRENT_FILE` for context-aware catch-up
 
 ## License
 
-MIT
+[MIT](../LICENSE)

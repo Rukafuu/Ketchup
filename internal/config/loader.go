@@ -60,6 +60,8 @@ func (l *Loader) Load() (*model.Config, error) {
 		cfg.Providers = make(map[string]model.ProviderConfig)
 	}
 
+	cfg.CatchUp = mergeCatchUpConfig(cfg.CatchUp)
+
 	// Validação: campos desconhecidos são erro
 	if err := l.validateUnknownFields(data); err != nil {
 		return nil, err
@@ -93,6 +95,8 @@ func (l *Loader) validateUnknownFields(data []byte) error {
 	// Campos válidos no nível raiz
 	validRootFields := map[string]bool{
 		"version":   true,
+		"project":   true,
+		"catchup":   true,
 		"providers": true,
 	}
 	
@@ -138,6 +142,25 @@ func (l *Loader) validatePaths(cfg *model.Config) error {
 		}
 	}
 	return nil
+}
+
+func mergeCatchUpConfig(partial model.CatchUpConfig) model.CatchUpConfig {
+	defaults := model.DefaultCatchUpConfig()
+
+	if partial.Show == "" {
+		partial.Show = defaults.Show
+	}
+	if partial.MaxRelevant == 0 {
+		partial.MaxRelevant = defaults.MaxRelevant
+	}
+
+	switch partial.Show {
+	case model.CatchUpShowRelevant, model.CatchUpShowAll:
+	default:
+		partial.Show = defaults.Show
+	}
+
+	return partial
 }
 
 // GetDefaults retorna configuração padrão para um provider

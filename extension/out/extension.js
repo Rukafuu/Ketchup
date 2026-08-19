@@ -39,14 +39,36 @@ const vscode = __importStar(require("vscode"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
+let outputChannel;
+function normalizeHealth(health) {
+    switch (health.toUpperCase()) {
+        case 'CLEAN': return 'clean';
+        case 'DRIFTED': return 'drifted';
+        default: return 'unknown';
+    }
+}
+function normalizeReports(raw) {
+    return raw.map(report => ({
+        name: report.provider || report.name || 'Unknown',
+        health: normalizeHealth(report.health),
+        summary: report.summary,
+        findings: (report.findings || []).map(finding => ({
+            code: finding.code,
+            severity: String(finding.severity),
+            summary: finding.summary,
+            details: finding.details || []
+        }))
+    }));
+}
 class KetchupTreeItem extends vscode.TreeItem {
-    constructor(label, collapsibleState, contextValue, iconPath, description) {
+    constructor(label, collapsibleState, contextValue, iconPath, description, providerName) {
         super(label, collapsibleState);
         this.label = label;
         this.collapsibleState = collapsibleState;
         this.contextValue = contextValue;
         this.iconPath = iconPath;
         this.description = description;
+        this.providerName = providerName;
     }
 }
 class KetchupProvider {
@@ -56,11 +78,10 @@ class KetchupProvider {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
         this.cliPath = 'ketchup';
         this.statusItems = [];
-        this.coreVersion = null;
-        this.updateAvailable = false;
         this.statusBarItem = null;
+        this.lastError = null;
         this.updateConfiguration();
-        if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+        if (vscode.workspace.workspaceFolders?.length) {
             this.workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
         }
     }
@@ -81,32 +102,35 @@ class KetchupProvider {
             return [new KetchupTreeItem('No workspace open', vscode.TreeItemCollapsibleState.None)];
         }
         if (!element) {
-            // Root level - show providers
             await this.fetchStatus();
+            if (this.lastError) {
+                return [
+                    new KetchupTreeItem(`Error: ${this.lastError}`, vscode.TreeItemCollapsibleState.None, undefined, new vscode.ThemeIcon('error', new vscode.ThemeColor('terminal.ansiRed'))),
+                    new KetchupTreeItem('Run Doctor to diagnose setup', vscode.TreeItemCollapsibleState.None, undefined, new vscode.ThemeIcon('wrench'))
+                ];
+            }
             if (this.statusItems.length === 0) {
                 return [new KetchupTreeItem('Click refresh to check status', vscode.TreeItemCollapsibleState.None)];
             }
             return this.statusItems.map(status => {
                 const icon = this.getHealthIcon(status.health);
-                const contextValue = status.name.toLowerCase().includes('git') ? 'git-provider' : 'provider';
+                const isGit = status.name.toLowerCase().includes('git');
+                const contextValue = isGit ? 'git-provider' : 'provider';
                 const item = new KetchupTreeItem(`${status.name}: ${status.summary}`, status.findings.length > 0
                     ? vscode.TreeItemCollapsibleState.Expanded
-                    : vscode.TreeItemCollapsibleState.None, contextValue, icon, status.findings.length > 0 ? `${status.findings.length} issue(s)` : undefined);
+                    : vscode.TreeItemCollapsibleState.None, contextValue, icon, status.findings.length > 0 ? `${status.findings.length} issue(s)` : undefined, status.name);
                 item.tooltip = `${status.name}\nHealth: ${status.health}\n${status.summary}`;
                 item.command = { command: 'ketchup.diff', title: 'Show Diff' };
                 return item;
             });
         }
-        // Findings under a provider - quick-fix buttons
-        const parentLabel = element?.label || '';
-        const parentLabelStr = typeof parentLabel === 'string' ? parentLabel : '';
-        const provider = this.statusItems.find(s => parentLabelStr.startsWith(s.name));
-        if (provider && provider.findings.length > 0) {
+        const treeItem = element;
+        const provider = this.statusItems.find(s => s.name === treeItem.providerName);
+        if (provider?.findings.length) {
             return provider.findings.map(finding => {
                 const icon = this.getSeverityIcon(finding.severity);
                 const item = new KetchupTreeItem(finding.summary, vscode.TreeItemCollapsibleState.None, 'finding', icon);
                 item.tooltip = `${finding.code}\nSeverity: ${finding.severity}\n${finding.summary}`;
-                // Add quick-fix command if available
                 if (finding.code === 'GIT_DRIFT' || finding.code === 'GIT_BEHIND') {
                     item.command = { command: 'ketchup.catchup', title: 'Catch Up Branch' };
                 }
@@ -118,6 +142,9 @@ class KetchupProvider {
         }
         return [];
     }
+    getDriftCount() {
+        return this.statusItems.filter(s => s.health === 'drifted').length;
+    }
     getHealthIcon(health) {
         switch (health) {
             case 'clean': return new vscode.ThemeIcon('check', new vscode.ThemeColor('terminal.ansiGreen'));
@@ -126,71 +153,69 @@ class KetchupProvider {
         }
     }
     getSeverityIcon(severity) {
-        if (severity.toLowerCase().includes('error') || severity.toLowerCase().includes('critical')) {
+        const normalized = severity.toLowerCase();
+        if (normalized.includes('error') || normalized.includes('critical')) {
             return new vscode.ThemeIcon('error', new vscode.ThemeColor('terminal.ansiRed'));
         }
-        else if (severity.toLowerCase().includes('warning')) {
+        if (normalized.includes('warning')) {
             return new vscode.ThemeIcon('warning', new vscode.ThemeColor('terminal.ansiYellow'));
         }
         return new vscode.ThemeIcon('info', new vscode.ThemeColor('terminal.ansiBlue'));
     }
     async fetchStatus() {
+        this.lastError = null;
         try {
             const { stdout } = await execAsync(`${this.cliPath} status --json`, {
                 cwd: this.workspaceRoot,
-                env: process.env
+                env: this.buildEnv()
             });
-            this.statusItems = JSON.parse(stdout);
+            this.statusItems = normalizeReports(JSON.parse(stdout));
             this.updateStatusBar();
+            return;
         }
         catch (error) {
-            // If command fails or returns non-zero, try to parse what we can
-            if (error.stdout) {
+            const execError = error;
+            if (execError.stdout) {
                 try {
-                    this.statusItems = JSON.parse(error.stdout);
+                    this.statusItems = normalizeReports(JSON.parse(execError.stdout));
                     this.updateStatusBar();
                     return;
                 }
-                catch { }
-            }
-            // Fallback: run without --json and parse manually
-            try {
-                const { stdout: textOutput } = await execAsync(`${this.cliPath} status`, {
-                    cwd: this.workspaceRoot,
-                    env: process.env
-                });
-                // Simple parsing of text output
-                this.statusItems = this.parseTextOutput(textOutput);
-                this.updateStatusBar();
-            }
-            catch (parseError) {
-                console.error('Ketchup status error:', error);
-                this.statusItems = [];
+                catch {
+                    // fall through to text parsing
+                }
             }
         }
-    }
-    async fetchCoreVersion() {
         try {
-            const { stdout } = await execAsync(`${this.cliPath} version --json`, {
+            const { stdout: textOutput } = await execAsync(`${this.cliPath} status`, {
                 cwd: this.workspaceRoot,
-                env: process.env
+                env: this.buildEnv()
             });
-            this.coreVersion = JSON.parse(stdout);
-            return this.coreVersion;
+            this.statusItems = this.parseTextOutput(textOutput);
+            this.updateStatusBar();
         }
         catch (error) {
-            console.error('Failed to get core version:', error);
-            return null;
+            const execError = error;
+            this.lastError = execError.message || 'Failed to run ketchup status';
+            this.statusItems = [];
+            this.updateStatusBar();
+            console.error('Ketchup status error:', execError.stdout || execError.message);
         }
+    }
+    buildEnv() {
+        const env = { ...process.env };
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            env.KETCHUP_CURRENT_FILE = editor.document.uri.fsPath;
+        }
+        return env;
     }
     updateStatusBar() {
         const config = vscode.workspace.getConfiguration('ketchup');
         const showStatusBar = config.get('showStatusBar', true);
         if (!showStatusBar) {
-            if (this.statusBarItem) {
-                this.statusBarItem.dispose();
-                this.statusBarItem = null;
-            }
+            this.statusBarItem?.dispose();
+            this.statusBarItem = null;
             return;
         }
         if (!this.statusBarItem) {
@@ -198,34 +223,34 @@ class KetchupProvider {
             this.statusBarItem.command = 'ketchup.status';
             this.context.subscriptions.push(this.statusBarItem);
         }
-        // Calculate overall health
-        let hasDrift = false;
-        let hasError = false;
-        for (const status of this.statusItems) {
-            if (status.health === 'drifted')
-                hasDrift = true;
-            if (status.health === 'unknown')
-                hasError = true;
-        }
-        if (hasError) {
+        if (this.lastError) {
             this.statusBarItem.text = '$(error) Ketchup Error';
-            this.statusBarItem.tooltip = 'Ketchup encountered an error checking status';
+            this.statusBarItem.tooltip = this.lastError;
             this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
         }
-        else if (hasDrift) {
-            this.statusBarItem.text = '$(warning) Ketchup Drift Detected';
-            this.statusBarItem.tooltip = 'Ketchup detected drift in your workspace - click to view details';
-            this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-        }
-        else if (this.statusItems.length > 0) {
-            this.statusBarItem.text = '$(check) Ketchup Clean';
-            this.statusBarItem.tooltip = 'Ketchup: All providers are clean';
-            this.statusBarItem.backgroundColor = undefined;
-        }
         else {
-            this.statusBarItem.text = '$(git-pull-request) Ketchup';
-            this.statusBarItem.tooltip = 'Ketchup: Click to check workspace status';
-            this.statusBarItem.backgroundColor = undefined;
+            const driftCount = this.statusItems.filter(s => s.health === 'drifted').length;
+            const hasUnknown = this.statusItems.some(s => s.health === 'unknown');
+            if (hasUnknown) {
+                this.statusBarItem.text = '$(question) Ketchup Unknown';
+                this.statusBarItem.tooltip = 'Some providers could not be checked';
+                this.statusBarItem.backgroundColor = undefined;
+            }
+            else if (driftCount > 0) {
+                this.statusBarItem.text = `$(warning) Ketchup (${driftCount})`;
+                this.statusBarItem.tooltip = `${driftCount} provider(s) with drift — click for details`;
+                this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+            }
+            else if (this.statusItems.length > 0) {
+                this.statusBarItem.text = '$(check) Ketchup Clean';
+                this.statusBarItem.tooltip = 'All providers are clean';
+                this.statusBarItem.backgroundColor = undefined;
+            }
+            else {
+                this.statusBarItem.text = '$(git-pull-request) Ketchup';
+                this.statusBarItem.tooltip = 'Click to check workspace status';
+                this.statusBarItem.backgroundColor = undefined;
+            }
         }
         this.statusBarItem.show();
     }
@@ -264,50 +289,68 @@ class KetchupProvider {
     }
 }
 function activate(context) {
-    console.log('Ketchup extension is now active');
+    outputChannel = vscode.window.createOutputChannel('Ketchup');
+    context.subscriptions.push(outputChannel);
     const provider = new KetchupProvider(context);
-    // Register tree view
     const treeView = vscode.window.createTreeView('ketchupView', {
         treeDataProvider: provider,
         showCollapseAll: true
     });
-    // Register commands
-    context.subscriptions.push(vscode.commands.registerCommand('ketchup.refresh', () => {
+    const updateBadge = () => {
+        const driftCount = provider.getDriftCount();
+        treeView.badge = driftCount > 0 ? { value: driftCount, tooltip: `${driftCount} provider(s) with drift` } : undefined;
+    };
+    const refreshAll = () => {
         provider.refresh();
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('ketchup.status', async () => {
+        updateBadge();
+    };
+    context.subscriptions.push(vscode.commands.registerCommand('ketchup.refresh', refreshAll), vscode.commands.registerCommand('ketchup.status', async () => {
         await runKetchupCommand(context, 'status', true);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('ketchup.diff', async () => {
+        refreshAll();
+    }), vscode.commands.registerCommand('ketchup.diff', async () => {
         await runKetchupCommand(context, 'diff', true);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('ketchup.sync', async () => {
+    }), vscode.commands.registerCommand('ketchup.sync', async () => {
         await runKetchupCommand(context, 'sync', false);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('ketchup.doctor', async () => {
+        refreshAll();
+    }), vscode.commands.registerCommand('ketchup.doctor', async () => {
         await runKetchupCommand(context, 'doctor', true);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('ketchup.catchup', async () => {
-        await runKetchupCommand(context, 'catch-up', false);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('ketchup.update', async () => {
+    }), vscode.commands.registerCommand('ketchup.catchup', async () => {
+        await runCatchUp(context, false);
+        refreshAll();
+    }), vscode.commands.registerCommand('ketchup.catchup.all', async () => {
+        await runCatchUp(context, true);
+        refreshAll();
+    }), vscode.commands.registerCommand('ketchup.update', async () => {
         await checkForUpdates(context, false);
     }));
-    // Auto-check on workspace open
     const config = vscode.workspace.getConfiguration('ketchup');
     if (config.get('autoCheckOnOpen', true)) {
-        provider.refresh();
+        refreshAll();
     }
-    // Auto-check for core updates on startup
     if (config.get('autoUpdate', true)) {
         checkForUpdates(context, true);
     }
-    // Listen for configuration changes
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('ketchup')) {
-            provider.refresh();
+            refreshAll();
         }
     }));
+}
+function buildCatchUpCommand(forceAll = false) {
+    const config = vscode.workspace.getConfiguration('ketchup');
+    const show = forceAll ? 'all' : (config.get('catchUpShow', 'relevant') || 'relevant');
+    const explain = config.get('catchUpExplain', false);
+    const parts = ['catch-up'];
+    if (show === 'all') {
+        parts.push('--show', 'all');
+    }
+    if (explain) {
+        parts.push('--explain');
+    }
+    return parts.join(' ');
+}
+async function runCatchUp(context, showAll) {
+    await runKetchupCommand(context, buildCatchUpCommand(showAll), true);
 }
 async function checkForUpdates(context, silent) {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -317,7 +360,6 @@ async function checkForUpdates(context, silent) {
     const config = vscode.workspace.getConfiguration('ketchup');
     const cliPath = config.get('cliPath') || 'ketchup';
     const channel = config.get('updateChannel', 'stable');
-    const outputChannel = vscode.window.createOutputChannel('Ketchup');
     outputChannel.appendLine(`Checking for Ketchup updates (${channel} channel)...`);
     try {
         const { stdout } = await execAsync(`${cliPath} update --check --channel ${channel}`, {
@@ -325,7 +367,7 @@ async function checkForUpdates(context, silent) {
             env: process.env
         });
         outputChannel.appendLine(stdout);
-        if (stdout.includes('update available') || stdout.includes('new version')) {
+        if (stdout.toLowerCase().includes('update available')) {
             if (!silent) {
                 const action = await vscode.window.showInformationMessage('A new version of Ketchup core is available. Would you like to update?', 'Update Now', 'Later');
                 if (action === 'Update Now') {
@@ -333,7 +375,7 @@ async function checkForUpdates(context, silent) {
                 }
             }
             else {
-                vscode.window.showInformationMessage('Ketchup update available - click the update button to install');
+                vscode.window.showInformationMessage('Ketchup update available — use "Check for Updates" in the sidebar');
             }
         }
         else if (!silent) {
@@ -341,9 +383,11 @@ async function checkForUpdates(context, silent) {
         }
     }
     catch (error) {
-        outputChannel.appendLine(`Error checking for updates: ${error.message}`);
+        const execError = error;
+        outputChannel.appendLine(`Error checking for updates: ${execError.message}`);
         if (!silent) {
-            if (error.message.includes('no update available') || error.message.includes('already up to date')) {
+            const message = execError.message?.toLowerCase() || '';
+            if (message.includes('already on latest') || message.includes('no updates')) {
                 vscode.window.showInformationMessage('Ketchup core is up to date');
             }
             else {
@@ -351,6 +395,14 @@ async function checkForUpdates(context, silent) {
             }
         }
     }
+}
+function buildCommandEnv() {
+    const env = { ...process.env };
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+        env.KETCHUP_CURRENT_FILE = editor.document.uri.fsPath;
+    }
+    return env;
 }
 async function runKetchupCommand(context, command, showOutput) {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -361,57 +413,57 @@ async function runKetchupCommand(context, command, showOutput) {
     const config = vscode.workspace.getConfiguration('ketchup');
     const cliPath = config.get('cliPath') || 'ketchup';
     const showNotifications = config.get('showNotifications', true);
-    const outputChannel = vscode.window.createOutputChannel('Ketchup');
     outputChannel.appendLine(`Running: ${cliPath} ${command}`);
     outputChannel.appendLine(`Working directory: ${workspaceRoot}`);
     outputChannel.appendLine('---');
     try {
         const { stdout, stderr } = await execAsync(`${cliPath} ${command}`, {
             cwd: workspaceRoot,
-            env: process.env,
-            maxBuffer: 1024 * 1024 // 1MB buffer
+            env: buildCommandEnv(),
+            maxBuffer: 1024 * 1024
         });
         outputChannel.appendLine(stdout);
         if (stderr) {
             outputChannel.appendLine(stderr);
         }
         outputChannel.appendLine('---');
-        outputChannel.appendLine(`Command completed with exit code 0`);
+        outputChannel.appendLine('Command completed with exit code 0');
         if (showOutput) {
             outputChannel.show(true);
         }
-        // Show notification for sync/catchup completion
-        if ((command === 'sync' || command === 'catch-up') && showNotifications) {
+        const baseCommand = command.split(' ')[0];
+        if ((baseCommand === 'sync' || baseCommand === 'catch-up') && showNotifications) {
             if (stdout.includes('COMPLETED') || stdout.includes('already clean') || stdout.includes('up to date')) {
-                vscode.window.showInformationMessage(`Ketchup ${command.split(' ')[0]} completed successfully!`);
+                vscode.window.showInformationMessage(`Ketchup ${baseCommand} completed successfully`);
             }
             else if (stdout.includes('MANUAL_REQUIRED')) {
-                vscode.window.showWarningMessage(`Ketchup ${command.split(' ')[0]} requires manual intervention.`);
+                vscode.window.showWarningMessage(`Ketchup ${baseCommand} requires manual intervention`);
             }
         }
     }
     catch (error) {
-        outputChannel.appendLine(`Error: ${error.message}`);
-        if (error.stdout) {
-            outputChannel.appendLine(error.stdout);
+        const execError = error;
+        outputChannel.appendLine(`Error: ${execError.message}`);
+        if (execError.stdout) {
+            outputChannel.appendLine(execError.stdout);
         }
-        if (error.stderr) {
-            outputChannel.appendLine(error.stderr);
+        if (execError.stderr) {
+            outputChannel.appendLine(execError.stderr);
         }
         outputChannel.show(true);
-        const exitCode = error.code || 1;
+        const exitCode = execError.code || 1;
         if (showNotifications) {
             if (exitCode === 1) {
-                vscode.window.showWarningMessage('Ketchup: Drift detected or action required');
+                vscode.window.showWarningMessage('Ketchup: drift detected or action required');
             }
             else if (exitCode === 2) {
-                vscode.window.showErrorMessage('Ketchup: Configuration error');
+                vscode.window.showErrorMessage('Ketchup: configuration error — run Doctor');
             }
             else if (exitCode === 3) {
-                vscode.window.showErrorMessage('Ketchup: Check failed');
+                vscode.window.showErrorMessage('Ketchup: check failed');
             }
             else {
-                vscode.window.showErrorMessage(`Ketchup error: ${error.message}`);
+                vscode.window.showErrorMessage(`Ketchup error: ${execError.message}`);
             }
         }
     }

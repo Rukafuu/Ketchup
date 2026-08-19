@@ -1,80 +1,67 @@
-# Ketchup Extension - Development Notes
+# Ketchup Extension — Development Notes
 
-## Build & Test
+## Setup
 
 ```bash
-# Install dependencies
 cd extension
 npm install
-
-# Compile TypeScript
 npm run compile
-
-# Watch mode for development
-npm run watch
-
-# Lint
-npm run lint
-
-# Package for distribution
-vsce package
 ```
 
-## Testing the Extension
+## Scripts
 
-1. Open this folder in VSCode
-2. Press `F5` to launch Extension Development Host
-3. In the new window, open a workspace with `.ff.yml`
-4. The Ketchup icon will appear in the Activity Bar
+| Script | Description |
+|--------|-------------|
+| `npm run compile` | Build TypeScript to `out/` |
+| `npm run watch` | Watch mode for development |
+| `npm run lint` | Run ESLint |
+| `npm run package` | Build `.vsix` with `@vscode/vsce` |
 
-## Key Features Implemented
+## Testing locally
 
-### Tree View Provider
-- Shows status of each provider (Git, Dependencies, Environment)
-- Color-coded health indicators (green=clean, yellow=drifted, blue=unknown)
-- Expandable items for findings
+1. Open the repository root in VS Code
+2. Run **Run Extension** from `extension/` (F5)
+3. In the Extension Development Host, open a workspace with `.ketchup.yml`
+4. Confirm the Ketchup icon appears in the Activity Bar
 
-### Commands
-- `ketchup.refresh` - Refresh tree view
-- `ketchup.status` - Run status and show output
-- `ketchup.diff` - Show detailed diff
-- `ketchup.sync` - Execute sync with notifications
-- `ketchup.doctor` - Validate configuration
-
-### Configuration
-- `ketchup.cliPath` - Custom CLI path (default: "ff")
-- `ketchup.autoCheckOnOpen` - Auto-check on workspace open
-- `ketchup.showNotifications` - Enable/disable notifications
-
-### Output Channel
-All command outputs are logged to "Ketchup" output channel for debugging.
-
-## Next Steps
-
-1. **Add JSON output to CLI**: Modify Go CLI to support `--json` flag for better parsing
-2. **Add inline actions**: Quick-fix buttons for common drift issues
-3. **Status bar item**: Show health indicator in status bar
-4. **Badge counter**: Show number of drifted providers on icon
-5. **Tests**: Add unit tests for extension logic
-
-## Publishing
+## Package for distribution
 
 ```bash
-# Install vsce globally
-npm install -g @vscode/vsce
-
-# Login to VS Marketplace
-vsce login <publisher-name>
-
-# Package
-vsce package
-
-# Publish
-vsce publish
+npm run compile
+npm run package
+# Output: ketchup-0.2.0.vsix
 ```
 
-## Debugging Tips
+Install manually via **Extensions → Install from VSIX**.
 
-- Check "Extension Host" logs in Developer Tools
-- Use `console.log()` in extension.ts (visible in Extension Host output)
-- Test with different exit codes by mocking CLI responses
+## Publishing to VS Marketplace
+
+```bash
+npm install -g @vscode/vsce
+vsce login ketchup-ai
+npm run publish
+```
+
+Requires a [publisher account](https://marketplace.visualstudio.com/manage) and verified publisher ID.
+
+## Debugging
+
+- Extension Host logs: **Help → Toggle Developer Tools → Console**
+- CLI output: **View → Output → Ketchup**
+- Test exit codes by running CLI commands manually in the workspace terminal
+
+## Implemented features (v0.2.0)
+
+- Tree view with provider health and findings
+- Status bar indicator with drift count
+- Quick-fix commands on findings
+- JSON + text fallback parsing
+- Shared output channel
+- Badge on sidebar when drift is detected
+- Auto-check on open and optional CLI update check
+
+## Next steps
+
+- Unit tests for JSON normalization logic
+- E2E tests with mocked CLI
+- Marketplace assets (screenshots, demo GIF)
