@@ -29,7 +29,7 @@ npm run compile
 ```bash
 npm run compile
 npm run package
-# Output: ketchup-fast-forward-0.2.1.vsix
+# Output: ketchup-fast-forward-0.3.0.vsix
 ```
 
 Install manually via **Extensions → Install from VSIX**.
@@ -50,7 +50,7 @@ Requires a [publisher account](https://marketplace.visualstudio.com/manage) and 
 - CLI output: **View → Output → Ketchup**
 - Test exit codes by running CLI commands manually in the workspace terminal
 
-## Implemented features (v0.2.0)
+## Implemented features (v0.3.0)
 
 - Tree view with provider health and findings
 - Status bar indicator with drift count
