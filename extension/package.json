@@ -3,7 +3,7 @@
   "displayName": "Ketchup",
   "description": "Detect and sync drift between local workspace and expected state",
   "version": "0.2.0",
-  "publisher": "ketchup-ai",
+  "publisher": "Reskyume",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -38,7 +38,7 @@ Install manually via **Extensions → Install from VSIX**.
 
 ```bash
 npm install -g @vscode/vsce
-vsce login ketchup-ai
+vsce login Reskyume
 npm run publish
 ```
 
