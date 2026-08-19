@@ -1,4 +1,4 @@
-# Ketchup — VS Code Extension
+# Ketchup Fast-Forward — VS Code Extension
 
 Visual Studio Code extension for [Ketchup](https://github.com/ketchup-ai/ketchup): detect and sync drift between your local workspace and the expected project state.
 
@@ -19,7 +19,7 @@ npm run compile
 npm run package
 ```
 
-Then in VS Code: **Extensions → ... → Install from VSIX** and select `ketchup-0.2.0.vsix`.
+Then in VS Code: **Extensions → ... → Install from VSIX** and select `ketchup-fast-forward-0.2.0.vsix`.
 
 ### Development
 

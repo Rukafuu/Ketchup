@@ -29,7 +29,7 @@ npm run compile
 ```bash
 npm run compile
 npm run package
-# Output: ketchup-0.2.0.vsix
+# Output: ketchup-fast-forward-0.2.0.vsix
 ```
 
 Install manually via **Extensions → Install from VSIX**.
