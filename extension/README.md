@@ -2,6 +2,8 @@
 
 Visual Studio Code extension for [Ketchup](https://github.com/ketchup-ai/ketchup): detect and sync drift between your local workspace and the expected project state.
 
+**Install:** [VS Marketplace — Reskyume.ketchup-fast-forward](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)
+
 ## Requirements
 
 - VS Code 1.85.0 or later

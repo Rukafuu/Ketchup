@@ -2,11 +2,22 @@
 
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.19+-blue)](go.mod)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/Reskyume.ketchup-fast-forward?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)
 [![VS Code](https://img.shields.io/badge/vscode-1.85+-blue)](extension/package.json)
 
 **Ketchup** is a CLI tool and VS Code extension that detects and synchronizes drift between your local development workspace and the expected project state.
 
 > Keep your workspace always in sync — safely.
+
+## 🎉 Ketchup Fast-Forward is live on the VS Marketplace!
+
+**[Install Ketchup Fast-Forward on VS Code →](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
+
+Our VS Code extension is officially published — sidebar panel, status bar, catch-up with relevance filtering, and one-click drift sync, all from inside the editor.
+
+Search for **"Ketchup Fast-Forward"** in VS Code Extensions, or install directly from the link above.
+
+> **Using Cursor?** The extension is not in Cursor's marketplace yet. Install from VSIX: **Extensions → ... → Install from VSIX** using `extension/ketchup-fast-forward-0.2.0.vsix`.
 
 ## Features
 
@@ -35,14 +46,20 @@ Add the binary to your `PATH`, or configure the extension with `"ketchup.cliPath
 
 ### VS Code Extension
 
-**From VSIX (local install):**
+**Install from the Marketplace (recommended):**
+
+👉 **[Ketchup Fast-Forward on VS Marketplace](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
+
+Or search **"Ketchup Fast-Forward"** in VS Code → Extensions.
+
+**From VSIX (local / Cursor):**
 
 ```bash
 cd extension
 npm install
 npm run compile
 npm run package
-# Install the generated .vsix via: Extensions → ... → Install from VSIX
+# Install ketchup-fast-forward-0.2.0.vsix via: Extensions → ... → Install from VSIX
 ```
 
 **Development mode:** open the repo in VS Code, go to `extension/`, press `F5`.
@@ -95,6 +112,8 @@ ketchup doctor
 ```
 
 ## VS Code Extension
+
+**Published as [Ketchup Fast-Forward](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)** on the VS Marketplace.
 
 The extension wraps the CLI and adds:
 
@@ -211,7 +230,7 @@ See [extension/DEVELOPMENT.md](extension/DEVELOPMENT.md) for extension-specific 
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for completed work and upcoming milestones (tests, CI/CD, VS Marketplace publication).
+See [ROADMAP.md](ROADMAP.md) for completed work and upcoming milestones (tests, CI/CD, Open VSX for Cursor).
 
 ## Contributing
 
@@ -230,6 +249,16 @@ See [ROADMAP.md](ROADMAP.md) for completed work and upcoming milestones (tests, 
 
 **Ketchup** é uma ferramenta CLI e extensão VS Code que detecta e sincroniza diferenças (*drift*) entre o ambiente local e o estado esperado do projeto.
 
+### 🎉 Extensão publicada!
+
+A **Ketchup Fast-Forward** já está no VS Marketplace:
+
+👉 **[Instalar no VS Code](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
+
+Busque por **"Ketchup Fast-Forward"** nas extensões do VS Code.
+
+> **No Cursor?** Ainda não aparece no marketplace do Cursor. Instale pelo VSIX em **Extensions → ... → Install from VSIX**.
+
 ### Início rápido
 
 ```bash
@@ -244,7 +273,7 @@ npm run compile
 npm run package
 ```
 
-Instale o `.vsix` gerado em **Extensions → ... → Install from VSIX**.
+Instale pelo [Marketplace](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward) ou pelo `.vsix` em **Extensions → ... → Install from VSIX**.
 
 ### Comandos principais
 
