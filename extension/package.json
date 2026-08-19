@@ -1,9 +1,9 @@
 {
-  "name": "fastforward",
-  "displayName": "FastForward",
+  "name": "ketchup",
+  "displayName": "Ketchup",
   "description": "Detect and sync drift between local workspace and expected state",
-  "version": "0.1.0",
-  "publisher": "fastforward",
+  "version": "0.2.0",
+  "publisher": "ketchup-ai",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -12,115 +12,162 @@
     "SCM Providers"
   ],
   "activationEvents": [
-    "onView:fastforwardView",
-    "onCommand:fastforward.status",
-    "onCommand:fastforward.diff",
-    "onCommand:fastforward.sync",
-    "onCommand:fastforward.doctor",
-    "workspaceContains:.ff.yml",
-    "workspaceContains:.ff.yaml"
+    "onView:ketchupView",
+    "onCommand:ketchup.status",
+    "onCommand:ketchup.diff",
+    "onCommand:ketchup.sync",
+    "onCommand:ketchup.doctor",
+    "onCommand:ketchup.catchup",
+    "onCommand:ketchup.update",
+    "workspaceContains:.ketchup.yml",
+    "workspaceContains:.ketchup.yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "fastforward-container",
-          "title": "FastForward",
+          "id": "ketchup-container",
+          "title": "Ketchup",
           "icon": "$(git-pull-request)"
         }
       ]
     },
     "views": {
-      "fastforward-container": [
+      "ketchup-container": [
         {
-          "id": "fastforwardView",
-          "name": "FastForward Status",
+          "id": "ketchupView",
+          "name": "Ketchup Status",
           "icon": "$(git-pull-request)",
-          "contextualTitle": "FastForward"
+          "contextualTitle": "Ketchup"
         }
       ]
     },
     "commands": [
       {
-        "command": "fastforward.refresh",
-        "title": "Refresh FastForward Status",
+        "command": "ketchup.refresh",
+        "title": "Refresh Ketchup Status",
         "icon": "$(refresh)",
-        "category": "FastForward"
+        "category": "Ketchup"
       },
       {
-        "command": "fastforward.status",
+        "command": "ketchup.status",
         "title": "Check Status",
         "icon": "$(info)",
-        "category": "FastForward"
+        "category": "Ketchup"
       },
       {
-        "command": "fastforward.diff",
+        "command": "ketchup.diff",
         "title": "Show Diff",
         "icon": "$(diff)",
-        "category": "FastForward"
+        "category": "Ketchup"
       },
       {
-        "command": "fastforward.sync",
+        "command": "ketchup.sync",
         "title": "Sync Workspace",
         "icon": "$(sync)",
-        "category": "FastForward"
+        "category": "Ketchup"
       },
       {
-        "command": "fastforward.doctor",
+        "command": "ketchup.doctor",
         "title": "Run Doctor",
         "icon": "$(wrench)",
-        "category": "FastForward"
+        "category": "Ketchup"
+      },
+      {
+        "command": "ketchup.catchup",
+        "title": "Catch Up Branch",
+        "icon": "$(arrow-up)",
+        "category": "Ketchup"
+      },
+      {
+        "command": "ketchup.update",
+        "title": "Check for Updates",
+        "icon": "$(cloud-download)",
+        "category": "Ketchup"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "fastforward.refresh",
-          "when": "view == fastforwardView",
+          "command": "ketchup.refresh",
+          "when": "view == ketchupView",
+          "group": "navigation"
+        },
+        {
+          "command": "ketchup.update",
+          "when": "view == ketchupView",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "fastforward.diff",
-          "when": "view == fastforwardView && viewItem == provider",
+          "command": "ketchup.diff",
+          "when": "view == ketchupView && viewItem == provider",
           "group": "inline"
         },
         {
-          "command": "fastforward.sync",
-          "when": "view == fastforwardView && viewItem == finding",
+          "command": "ketchup.sync",
+          "when": "view == ketchupView && viewItem == finding",
+          "group": "inline"
+        },
+        {
+          "command": "ketchup.catchup",
+          "when": "view == ketchupView && viewItem == git-provider",
           "group": "inline"
         }
       ],
       "explorer/context": [
         {
-          "command": "fastforward.status",
-          "group": "fastforward"
+          "command": "ketchup.status",
+          "group": "ketchup"
         },
         {
-          "command": "fastforward.sync",
-          "group": "fastforward"
+          "command": "ketchup.sync",
+          "group": "ketchup"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "ketchup.diff",
+          "when": "resourceLangId == yaml && resourceFilename =~ /\\.ketchup\\.(yml|yaml)/",
+          "group": "navigation"
         }
       ]
     },
     "configuration": {
-      "title": "FastForward",
+      "title": "Ketchup",
       "properties": {
-        "fastforward.cliPath": {
+        "ketchup.cliPath": {
           "type": "string",
-          "default": "ff",
-          "description": "Path to the FastForward CLI executable"
+          "default": "ketchup",
+          "description": "Path to the Ketchup CLI executable"
         },
-        "fastforward.autoCheckOnOpen": {
+        "ketchup.autoCheckOnOpen": {
           "type": "boolean",
           "default": true,
           "description": "Automatically check status when workspace opens"
         },
-        "fastforward.showNotifications": {
+        "ketchup.showNotifications": {
           "type": "boolean",
           "default": true,
           "description": "Show notifications for drift detection"
+        },
+        "ketchup.autoUpdate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically check for Ketchup core updates on startup"
+        },
+        "ketchup.updateChannel": {
+          "type": "string",
+          "default": "stable",
+          "enum": ["stable", "beta", "nightly"],
+          "description": "Update channel for Ketchup core"
+        },
+        "ketchup.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Ketchup status in the status bar"
         }
       }
     }
@@ -129,7 +176,9 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src --ext ts",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -137,6 +186,7 @@
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
     "eslint": "^8.54.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0"
   }
 }
