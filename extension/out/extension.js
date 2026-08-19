@@ -115,12 +115,17 @@ class KetchupProvider {
             return this.statusItems.map(status => {
                 const icon = this.getHealthIcon(status.health);
                 const isGit = status.name.toLowerCase().includes('git');
-                const contextValue = isGit ? 'git-provider' : 'provider';
+                const hasDrift = status.health === 'drifted' || status.health === 'unknown';
+                const contextValue = isGit
+                    ? (hasDrift ? 'git-provider-drifted' : 'git-provider-clean')
+                    : (hasDrift ? 'provider-drifted' : 'provider-clean');
                 const item = new KetchupTreeItem(`${status.name}: ${status.summary}`, status.findings.length > 0
                     ? vscode.TreeItemCollapsibleState.Expanded
                     : vscode.TreeItemCollapsibleState.None, contextValue, icon, status.findings.length > 0 ? `${status.findings.length} issue(s)` : undefined, status.name);
                 item.tooltip = `${status.name}\nHealth: ${status.health}\n${status.summary}`;
-                item.command = { command: 'ketchup.diff', title: 'Show Diff' };
+                if (hasDrift) {
+                    item.command = { command: 'ketchup.diff', title: 'Show Diff' };
+                }
                 return item;
             });
         }
@@ -308,7 +313,7 @@ function activate(context) {
         await runKetchupCommand(context, 'status', true);
         refreshAll();
     }), vscode.commands.registerCommand('ketchup.diff', async () => {
-        await runKetchupCommand(context, 'diff', true);
+        await runKetchupCommand(context, 'diff --drifted-only', true);
     }), vscode.commands.registerCommand('ketchup.sync', async () => {
         await runKetchupCommand(context, 'sync', false);
         refreshAll();

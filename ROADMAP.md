@@ -1,84 +1,83 @@
 # Roadmap de Desenvolvimento - Ketchup
 
-## ✅ Completado (v0.2.0)
+## Completado (v0.2.0)
 
 ### Core CLI
-- [x] **Git Provider** - Detecção de drift, status ahead/behind, upstream tracking
-- [x] **Dependencies Provider** - Suporte a npm/pnpm/yarn com detecção automática de lockfiles
-- [x] **Environment Provider** - Comparação entre .env e .env.example
-- [x] **JSON Output** - Flag `--json` em todos os comandos para integração
-- [x] **Sistema de Atualização Remota** - Módulo updater autônomo com checksum SHA-256
-- [x] **Script de Release** - Build multiplataforma automatizado (Windows, Linux, macOS)
+- [x] **Git Provider** — Detecção de drift, status ahead/behind, upstream tracking
+- [x] **Dependencies Provider** — Suporte a npm/pnpm/yarn com detecção automática de lockfiles
+- [x] **Environment Provider** — Comparação entre `.env` e `.env.example` (auto-skip se source ausente)
+- [x] **JSON Output** — Flag `--json` em todos os comandos para integração
+- [x] **Sistema de Atualização Remota** — Módulo updater autônomo com checksum SHA-256
+- [x] **Script de Release** — Build multiplataforma automatizado (Windows, Linux, macOS)
+- [x] **Alias `ff`** — Mesmo binário com help adaptado (`ketchup` / `ff`)
+- [x] **Catch-up configurável** — Modos `relevant` / `all`, flag `--explain`, seção `catchup` no YAML
+- [x] **UX do `diff`** — Mensagem quando limpo, `--drifted-only`, exit code 1 em drift, `--help`
+- [x] **`doctor` com sugestões** — Indica próximo comando (`status`, `diff`, `sync`, `catch-up`)
 
-### Extensão VSCode/Cursor
-- [x] **Renomeação para Ketchup** - Migração completa do branding FastForward → Ketchup
-- [x] **Status Bar Item** - Indicador visual do estado do workspace (clean/drifted/error)
-- [x] **Quick-fix Buttons** - Ações rápidas contextuais nos findings da tree view
-  - Git drift → Catch-up branch
-  - ENV/DEP issues → Sync workspace
-- [x] **Comando Catch-up** - Integração do comando `catch-up` na extensão
-- [x] **Auto-update Check** - Verificação automática de updates do core no startup
-- [x] **Configurações de Update** - Canais stable/beta/nightly configuráveis
-- [x] **Tree View Aprimorada** - Ícones de severidade e contagem de issues
-- [x] **Compilação TypeScript** - Build completo para JavaScript
+### Extensão VS Code
+- [x] **Ketchup Fast-Forward** — Publicada no VS Marketplace ([Reskyume.ketchup-fast-forward](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward))
+- [x] **Publisher Reskyume** — Conta configurada e extensão verificada
+- [x] **Ícone e README** — Assets de marketplace e documentação da extensão
+- [x] **Status Bar Item** — Indicador visual do estado do workspace (clean/drifted/error)
+- [x] **Quick-fix Buttons** — Ações contextuais nos findings da tree view
+- [x] **Comando Catch-up** — Integração do `catch-up` com settings `catchUpShow` / `catchUpExplain`
+- [x] **Auto-update Check** — Verificação automática de updates do core no startup
+- [x] **Show Diff condicional** — Botão só aparece em providers com drift
 
 ### Infraestrutura
-- [x] **Módulo Updater Testado** - Suite de testes unitários (10+ testes passando)
-- [x] **Versionamento SemVer** - Comparação semântica de versões
-- [x] **Build Compilado** - Extensão pronta para publicação (.vsix)
+- [x] **Módulo Updater Testado** — Suite de testes unitários
+- [x] **Versionamento SemVer** — Comparação semântica de versões
+- [x] **Build `.vsix`** — Empacotamento via `@vscode/vsce`
 
 ---
 
-## 📋 Pendente para v0.3.0
+## Pendente para v0.3.0
 
-### Testes Unitários Expandidos
+### Testes
 - [ ] Testes para providers (Git, Dependencies, Environment)
 - [ ] Testes de integração CLI
-- [ ] Testes E2E da extensão VSCode
+- [ ] Testes E2E da extensão VS Code
 - [ ] Cobertura mínima de 80% do código
 
-### Publicação
-- [ ] Configurar conta publisher no VS Marketplace
-- [ ] Criar ícone e assets de marketing
-- [ ] Escrever README detalhado para marketplace
-- [ ] Configurar pipeline CI/CD para publicação automática
-- [ ] Publicar versão 0.2.0 no VS Marketplace
-- [ ] Publicar no Open VSX Registry
+### Publicação e distribuição
+- [ ] Publicar no **Open VSX Registry** (marketplace do Cursor / VSCodium)
+- [ ] Pipeline CI/CD (build, test, release automático)
+- [ ] GitHub Actions para validar PRs
 
-### Melhorias Futuras
-- [ ] **Git Provider Completo** - Suporte a múltiplos remotes, rebase automático
-- [ ] **Dependencies Provider Expandido** - Suporte a pip (Python), go modules, cargo (Rust)
-- [ ] **Environment Provider Avançado** - Validação de schema, tipos, valores default
-- [ ] **Novos Providers** - Docker, Kubernetes configs, IDE settings
-- [ ] **UI Dashboard** - Webview com visualização gráfica do drift
-- [ ] **Notificações Inteligentes** - Machine learning para priorizar issues críticas
-- [ ] **Modo Silent** - Auto-sync sem confirmação para ambientes CI/CD
-- [ ] **Plugins System** - API para providers customizados
+### Melhorias futuras
+- [ ] **Git Provider expandido** — Múltiplos remotes, cenários de merge complexos
+- [ ] **Dependencies expandido** — pip, go modules, cargo
+- [ ] **Environment avançado** — Validação de schema e valores default
+- [ ] **Novos Providers** — Docker, Kubernetes configs, IDE settings
+- [ ] **UI Dashboard** — Webview com visualização gráfica do drift
+- [ ] **Modo Silent** — Auto-sync para ambientes CI/CD (opt-in)
+- [ ] **Plugins System** — API para providers customizados
 
 ---
 
-## 📊 Status do Projeto
+## Status do Projeto
 
 ### Código
-- **CLI Go**: ~2500 linhas (providers + commands + updater)
-- **Extensão TS**: ~480 linhas (tree provider + commands + status bar)
-- **Testes**: 10 testes unitários (módulo updater)
-- **Cobertura**: ~40% (apenas updater)
+- **CLI Go**: ~2800 linhas (providers + commands + updater + catch-up)
+- **Extensão TS**: ~550 linhas (tree provider + commands + status bar)
+- **Testes**: report + helpers CLI + updater
+- **Cobertura**: parcial (updater, report, helpers)
 
-### Plataformas Suportadas
-- ✅ Windows (amd64, arm64)
-- ✅ Linux (amd64, arm64)
-- ✅ macOS (amd64, arm64)
+### Plataformas suportadas
+- Windows (amd64, arm64)
+- Linux (amd64, arm64)
+- macOS (amd64, arm64)
 
-### Próximos Passos Imediatos
-1. Expandir cobertura de testes para >80%
-2. Configurar GitHub Actions para CI/CD
-3. Preparar assets de publicação (ícone, screenshots)
-4. Submeter para revisão no VS Marketplace
-5. Anunciar lançamento nas comunidades (Dev.to, Hashnode, Reddit)
+### Próximos passos imediatos
+1. Publicar no Open VSX para instalação nativa no Cursor
+2. Expandir cobertura de testes para >80%
+3. Configurar GitHub Actions (CI)
+4. Sincronizar metadados do Marketplace após updates de `package.json`
 
 ---
 
-**Última atualização**: Dezembro 2024  
+**Última atualização**: Agosto 2026  
 **Versão atual**: v0.2.0  
-**Próxima milestone**: v0.3.0 (testes + publicação)
+**Extensão**: [Ketchup Fast-Forward](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward) (VS Marketplace)  
+**Repositório**: [github.com/Rukafuu/Ketchup](https://github.com/Rukafuu/Ketchup)  
+**Próxima milestone**: v0.3.0 (Open VSX + testes + CI/CD)

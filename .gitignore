@@ -29,6 +29,8 @@ __pycache__/
 *.class
 ketchup
 ketchup.exe
+ff
+ff.exe
 extension/*.vsix
 extension/node_modules/
 extension/out/

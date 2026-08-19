@@ -7,12 +7,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ketchup-ai/ketchup.git"
+    "url": "https://github.com/Rukafuu/Ketchup.git"
   },
   "bugs": {
-    "url": "https://github.com/ketchup-ai/ketchup/issues"
+    "url": "https://github.com/Rukafuu/Ketchup/issues"
   },
-  "homepage": "https://github.com/ketchup-ai/ketchup#readme",
+  "homepage": "https://github.com/Rukafuu/Ketchup#readme",
   "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.85.0"
@@ -119,7 +119,7 @@
       "view/item/context": [
         {
           "command": "ketchup.diff",
-          "when": "view == ketchupView && viewItem == provider",
+          "when": "view == ketchupView && viewItem =~ /drifted/",
           "group": "inline"
         },
         {
@@ -129,7 +129,7 @@
         },
         {
           "command": "ketchup.catchup",
-          "when": "view == ketchupView && viewItem == git-provider",
+          "when": "view == ketchupView && viewItem == git-provider-drifted",
           "group": "inline"
         }
       ],

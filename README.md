@@ -108,7 +108,47 @@ ketchup catch-up
 
 Add the binary to your `PATH`, or configure the extension with `"ketchup.cliPath"`.
 
-### Extension
+The CLI is also available as **`ff`** — same binary, help text adapts to the executable name:
+
+```powershell
+.\scripts\build.ps1          # builds ketchup.exe + ff.exe
+ff status
+ff diff --drifted-only
+ff catch-up                  # alias for catch-up
+```
+
+---
+
+## When to use status, diff, and sync
+
+| Command | Question it answers | When to run |
+|---------|---------------------|-------------|
+| **`status`** | "Is something wrong?" | Every time you open a project — quick overview |
+| **`diff`** | "What exactly is wrong?" | After `status` shows drift — detailed breakdown |
+| **`sync`** | "Fix it safely" | After reviewing `diff` — applies only safe, confirmed changes |
+| **`doctor`** | "Is my setup OK?" | First install, or when commands fail unexpectedly |
+| **`catch-up`** | "What changed while I was away?" | After vacations, meetings, or context switching |
+
+```bash
+ff doctor                      # 1. validate tools and config
+ff status                      # 2. quick health check
+ff diff                        # 3. details (if status != clean)
+ff diff --drifted-only         #    only problematic providers
+ff diff --help                 #    examples and sample output
+ff sync                        # 4. fix safe drift (with confirmation)
+ff catch-up                    #    summarize recent relevant changes
+```
+
+**Tip:** When everything is clean, `ff diff` prints:
+
+```text
+No drift detected. All providers are clean.
+Tip: run `ff status` for a quick summary.
+```
+
+The `env` provider is **skipped automatically** when `.env.example` (or your configured source file) does not exist — no more false `UNKNOWN` noise.
+
+---
 
 ```bash
 cd extension && npm install && npm run compile && npm run package
@@ -123,7 +163,7 @@ cd extension && npm install && npm run compile && npm run package
 |---------|-------------|------------|
 | **`ketchup catch-up`** | Summarize changes since last session | `0` |
 | **`ketchup status`** | Workspace health summary (read-only) | `0`=clean, `1`=drift |
-| **`ketchup diff`** | Detailed drift report (read-only) | `0`=clean, `1`=drift |
+| **`ketchup diff`** | Detailed drift report (read-only); use `--drifted-only` to filter | `0`=clean, `1`=drift |
 | **`ketchup sync`** | Plan + confirm + apply changes | `0`=success, `1`=manual |
 | `ketchup doctor` | Validate config and required tools | `0`=ok, `1`=failures |
 | `ketchup update` | Check or install CLI updates | `0`=ok |
@@ -196,7 +236,7 @@ providers:
     enabled: true
   env:
     enabled: true
-    source: .env.example
+    source: .env.example   # skipped automatically if file is missing
     target: .env
 ```
 
@@ -261,6 +301,7 @@ Contributions welcome — fork, branch, PR. [MIT](LICENSE)
 
 ```bash
 go build -o ketchup.exe ./cmd/ketchup
+go build -o ff.exe ./cmd/ketchup    # same CLI, ff-aware help
 ketchup catch-up
 ketchup status
 ketchup sync

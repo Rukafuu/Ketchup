@@ -65,13 +65,20 @@ for platform in "${PLATFORMS[@]}"; do
         -ldflags "-X main.Version=$VERSION" \
         -o "$RELEASE_DIR/$OUTPUT_NAME" \
         "$PROJECT_ROOT/cmd/ketchup"
+
+    FF_NAME="ff-$OS-$ARCH"
+    if [[ "$OS" == "windows" ]]; then
+        FF_NAME="$FF_NAME.exe"
+    fi
+    cp "$RELEASE_DIR/$OUTPUT_NAME" "$RELEASE_DIR/$FF_NAME"
+    echo "  Alias $OS/$ARCH -> $FF_NAME"
 done
 
 # Generate SHA-256 checksums
 echo ""
 echo "Generating checksums..."
 declare -A CHECKSUMS
-for file in "$RELEASE_DIR"/ketchup-*; do
+for file in "$RELEASE_DIR"/ketchup-* "$RELEASE_DIR"/ff-*; do
     filename="$(basename "$file")"
     checksum="$(sha256sum "$file" | awk '{print $1}')"
     CHECKSUMS["$filename"]="$checksum"

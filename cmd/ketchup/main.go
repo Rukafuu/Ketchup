@@ -56,7 +56,7 @@ case "sync":
 os.Exit(runSync(ctx, root, args))
 case "doctor":
 os.Exit(runDoctor(ctx, root, args))
-case "catch-up":
+case "catch-up", "catchup":
 os.Exit(runCatchUp(ctx, root, args))
 case "update":
 os.Exit(runUpdate(ctx, root, args))
@@ -68,10 +68,13 @@ os.Exit(2)
 }
 
 func printUsage() {
-fmt.Println(`Ketchup — never run out of sync
+name := cliName()
+fmt.Printf(`Ketchup — never run out of sync
 
 Usage:
-  ketchup <command> [options]
+  %s <command> [options]
+
+Also available as: ketchup, ff (same binary — name adapts to executable)
 
 Commands:
   status      Check workspace health (read-only)
@@ -80,6 +83,17 @@ Commands:
   doctor      Validate configuration and tools
   catch-up    Explain what happened since last session
   update      Check for and install updates
+
+Workflow:
+  %s doctor     # validate setup
+  %s status     # quick health check
+  %s diff       # detailed drift report (after status shows drift)
+  %s sync       # apply safe fixes
+
+Diff options:
+  --drifted-only   Show only providers with drift or errors
+  --json           Output as JSON
+  --help, -h       Command-specific help (e.g. %s diff --help)
 
 Catch-up options:
   --show relevant|all   What to display (overrides catchup.show in config)
@@ -92,15 +106,13 @@ Options:
   --version, -v  Show version
 
 Examples:
-  ketchup status
-  ketchup catch-up --explain
-  ketchup catch-up --show all
-  ketchup catch-up --show-ignored
-  ketchup catch-up --json
-  ketchup version --json
-  ketchup update --check
-  ketchup update --channel beta
-`)
+  %s status
+  %s diff --drifted-only
+  %s catch-up --explain
+  %s catch-up --show all
+  %s version --json
+  %s update --check
+`, name, name, name, name, name, name, name, name, name, name, name, name)
 }
 
 func runVersion(args []string) {
@@ -238,10 +250,16 @@ return 0
 }
 
 func runDiff(ctx context.Context, root string, args []string) int {
+	name := cliName()
+	if containsArg(args, "--help") || containsArg(args, "-h") {
+		printDiffHelp(name)
+		return 0
+	}
+
 	_, eng, err := setupEngine(root)
 if err != nil {
 fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-os.Exit(2)
+return 2
 }
 
 reports, err := eng.Diff(ctx)
@@ -250,25 +268,35 @@ fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 return 1
 }
 
-jsonOutput := containsArg(args, "--json")
-if jsonOutput {
-output, _ := json.MarshalIndent(reports, "", "  ")
-fmt.Println(string(output))
-} else {
-for _, r := range reports {
-fmt.Printf("Provider: %s\n", r.Provider)
-fmt.Printf("Health: %s\n", r.Health)
-fmt.Printf("Summary: %s\n", r.Summary)
-for _, f := range r.Findings {
-fmt.Printf("  [%s] %s\n", f.Severity, f.Summary)
-for _, d := range f.Details {
-fmt.Printf("    %s: %s\n", d.Key, d.Value)
-}
-}
-fmt.Println()
-}
+health := aggregateDiffHealth(reports)
+driftedOnly := containsArg(args, "--drifted-only")
+displayReports := reports
+if driftedOnly {
+	displayReports = filterDriftedReports(reports)
 }
 
+jsonOutput := containsArg(args, "--json")
+
+if jsonOutput {
+	toEncode := reports
+	if driftedOnly {
+		toEncode = displayReports
+	}
+	output, _ := json.MarshalIndent(toEncode, "", "  ")
+	fmt.Println(string(output))
+} else if health == model.HealthClean {
+	fmt.Println("No drift detected. All providers are clean.")
+	fmt.Printf("Tip: run `%s status` for a quick summary.\n", name)
+} else {
+	printDiffReports(displayReports)
+}
+
+if health == model.HealthDrifted {
+return 1
+}
+if health == model.HealthUnknown {
+return 1
+}
 return 0
 }
 
@@ -311,10 +339,16 @@ return 1
 }
 
 func runDoctor(ctx context.Context, root string, args []string) int {
+	name := cliName()
+	if containsArg(args, "--help") || containsArg(args, "-h") {
+		printDoctorHelp(name)
+		return 0
+	}
+
 	_, eng, err := setupEngine(root)
 if err != nil {
 fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-os.Exit(2)
+return 2
 }
 
 result, err := eng.Doctor(ctx)
@@ -324,24 +358,33 @@ return 1
 }
 
 jsonOutput := containsArg(args, "--json")
+allPassed := true
+for _, check := range result.Checks {
+	if !check.Passed {
+		allPassed = false
+		break
+	}
+}
+
 if jsonOutput {
 output, _ := json.MarshalIndent(result, "", "  ")
 fmt.Println(string(output))
 } else {
-allPassed := true
 for _, check := range result.Checks {
 icon := "✓"
 if !check.Passed {
 icon = "✗"
-allPassed = false
 }
 fmt.Printf("[%s] %s: %s\n", icon, check.Name, check.Message)
 }
+
+_, health, _ := eng.Status(ctx)
+printDoctorSuggestions(name, allPassed, health)
+}
+
 if !allPassed {
 return 1
 }
-}
-
 return 0
 }
 
@@ -458,13 +501,13 @@ return nil, nil, fmt.Errorf("failed to load config: %w", err)
 eng := engine.NewEngine(root, cfg)
 
 // Register providers
-if cfg.Providers["git"] != nil || true { // Always register git
+if shouldRegisterProvider(cfg.Providers["git"], true) {
 eng.RegisterProvider(gitprovider.NewProvider(nil))
 }
-if cfg.Providers["dependencies"] != nil || true {
+if shouldRegisterProvider(cfg.Providers["dependencies"], true) {
 eng.RegisterProvider(dependencies.NewProvider(nil))
 }
-if cfg.Providers["env"] != nil || true {
+if shouldRegisterEnv(root, cfg.Providers["env"]) {
 eng.RegisterProvider(envprovider.NewProvider())
 }
 
