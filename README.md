@@ -17,7 +17,7 @@ Detect and synchronize drift between your local workspace and the expected proje
 
 <br />
 
-### 🎉 Ketchup Fast-Forward is live!
+### Ketchup Fast-Forward is live!
 
 **[Install on VS Code Marketplace →](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
 
@@ -32,19 +32,19 @@ Search for **"Ketchup Fast-Forward"** in VS Code Extensions.
 <table align="center">
 <tr>
 <td align="center" width="25%">
-<h3>🔍 Catch-up</h3>
+<h3>Catch-up</h3>
 Summarizes what changed since your last session — filtering noise and surfacing what matters to <strong>your</strong> work.
 </td>
 <td align="center" width="25%">
-<h3>🛡️ Safe by design</h3>
+<h3>Safe by design</h3>
 Checks are <strong>read-only</strong>. Changes only via <code>sync</code> with explicit confirmation. Git is <strong>fast-forward only</strong>.
 </td>
 <td align="center" width="25%">
-<h3>📦 Drift detection</h3>
+<h3>Drift detection</h3>
 Git, dependencies, and environment — compared against the expected state without exposing secrets.
 </td>
 <td align="center" width="25%">
-<h3>🧩 VS Code extension</h3>
+<h3>VS Code extension</h3>
 Sidebar panel, status bar, quick-fix actions, and auto-check — published as <strong>Ketchup Fast-Forward</strong>.
 </td>
 </tr>
@@ -270,6 +270,6 @@ ketchup sync
 
 <br />
 
-**Ketchup** — Mantenha seu workspace sempre em sync! 🍅
+**Ketchup** — Mantenha seu workspace sempre em sync!
 
 </div>
