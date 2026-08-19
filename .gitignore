@@ -1,38 +1,52 @@
 ```
-# Compiled and build artifacts
-*.o
-*.obj
-*.out
-*.a
-*.so
-*.dll
-*.exe
-
 # Dependencies
-vendor/
+node_modules/
 
-# Logs and temp files
+# Logs
 *.log
-*.tmp
-*.swp
 
-# Environment
+# Environment variables
 .env
 .env.local
 .env.*
 
-# Editors
+# IDE files
 .vscode/
 .idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+target/
+*.o
+*.obj
+*.pyc
+__pycache__/
+*.class
+
+# Temporary files
+*.tmp
 *.swp
 *.swo
 
-# Coverage
+# Coverage reports
 coverage/
 htmlcov/
-.coverage
 
-# Go-specific
-*.test
-*.prof
+# Python
+*.pyc
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 ```
