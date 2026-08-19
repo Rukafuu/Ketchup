@@ -7,6 +7,7 @@ import (
 
 	"github.com/ketchup-ai/ketchup/internal/model"
 	"github.com/ketchup-ai/ketchup/internal/relevance"
+	"github.com/ketchup-ai/ketchup/internal/signals"
 )
 
 // GenerateOptions controla o conteúdo do relatório de catch-up
@@ -145,6 +146,7 @@ func (r *CatchUpReport) renderAllChanges(sb *strings.Builder, explain bool) {
 			change.Signal.Score,
 			change.Event.Title,
 		))
+		r.renderFileSummary(sb, change)
 		r.renderChangeReasons(sb, change, explain)
 		sb.WriteString("\n")
 	}
@@ -170,9 +172,21 @@ func (r *CatchUpReport) renderChangesBySeverity(sb *strings.Builder, changes []r
 			} else {
 				sb.WriteString(fmt.Sprintf("%s\n", change.Event.Title))
 			}
+			r.renderFileSummary(sb, change)
 			r.renderChangeReasons(sb, change, explain)
 			sb.WriteString("\n")
 		}
+	}
+}
+
+func (r *CatchUpReport) renderFileSummary(sb *strings.Builder, change relevance.RelevantChange) {
+	if summary := signals.SummarizeChangedFiles(change.Event.Files); summary != "" {
+		sb.WriteString(summary)
+		sb.WriteString("\n")
+		return
+	}
+	if change.Event.Description != "" {
+		sb.WriteString(fmt.Sprintf("  %s\n", change.Event.Description))
 	}
 }
 

@@ -1,11 +1,11 @@
 package git
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/ketchup-ai/ketchup/internal/exec"
 	"github.com/ketchup-ai/ketchup/internal/signals"
@@ -61,7 +61,7 @@ func (p *Provider) FetchEvents(ctx context.Context, root string, since signals.L
 			Timestamp:   commit.Date,
 			Actor:       commit.Author,
 			Title:       commit.Title,
-			Description: commit.Body,
+			Description: signals.SummarizeChangedFiles(commit.FilesChanged),
 			Files:       commit.FilesChanged,
 			Metadata: map[string]any{
 				"hash":     commit.Hash,
@@ -112,47 +112,49 @@ func (p *Provider) parseCommits(output []byte) ([]CommitInfo, error) {
 		return commits, nil
 	}
 
-	// Output vem como: hash\0author\0date\0title\0body\0refs\0\0files\0\0...
-	parts := strings.Split(string(output), "\x00\x00")
+	tokens := strings.Split(string(output), "\x00")
+	i := 0
 
-	for _, part := range parts {
-		if strings.TrimSpace(part) == "" {
+	for i < len(tokens) {
+		for i < len(tokens) && strings.TrimSpace(tokens[i]) == "" {
+			i++
+		}
+		if i >= len(tokens) {
+			break
+		}
+		if i+5 >= len(tokens) {
+			break
+		}
+
+		hash := strings.TrimSpace(tokens[i])
+		if !looksLikeCommitHash(hash) {
+			i++
 			continue
 		}
 
-		lines := strings.Split(part, "\x00")
-		if len(lines) < 6 {
-			continue
+		author := strings.TrimSpace(tokens[i+1])
+		dateStr := strings.TrimSpace(tokens[i+2])
+		title := strings.TrimSpace(tokens[i+3])
+		body := strings.TrimSpace(tokens[i+4])
+		refs := strings.TrimSpace(tokens[i+5])
+		i += 6
+
+		var files []string
+		for i < len(tokens) && strings.TrimSpace(tokens[i]) != "" {
+			token := strings.TrimSpace(tokens[i])
+			if looksLikeCommitHash(token) {
+				break
+			}
+			files = append(files, token)
+			i++
 		}
 
-		hash := strings.TrimSpace(lines[0])
-		author := strings.TrimSpace(lines[1])
-		dateStr := strings.TrimSpace(lines[2])
-		title := strings.TrimSpace(lines[3])
-		body := strings.TrimSpace(lines[4])
-		refs := strings.TrimSpace(lines[5])
-
-		// Parse date
 		date, err := time.Parse(time.RFC3339, dateStr)
 		if err != nil {
 			date = time.Now()
 		}
 
-		// Detect merge
-		isMerge := strings.Contains(refs, "tag: ") || strings.Contains(title, "Merge")
-
-		// Parse files changed (vem após o sexto elemento)
-		var files []string
-		if len(lines) > 6 {
-			filesStr := strings.Join(lines[6:], "\x00")
-			scanner := bufio.NewScanner(strings.NewReader(filesStr))
-			for scanner.Scan() {
-				f := strings.TrimSpace(scanner.Text())
-				if f != "" {
-					files = append(files, f)
-				}
-			}
-		}
+		isMerge := strings.Contains(strings.ToLower(title), "merge") || strings.Contains(refs, "tag: ")
 
 		commits = append(commits, CommitInfo{
 			Hash:         hash,
@@ -167,4 +169,23 @@ func (p *Provider) parseCommits(output []byte) ([]CommitInfo, error) {
 	}
 
 	return commits, nil
+}
+
+func looksLikeCommitHash(value string) bool {
+	if len(value) < 7 {
+		return false
+	}
+	for _, r := range value {
+		if r >= '0' && r <= '9' {
+			continue
+		}
+		if r >= 'a' && r <= 'f' {
+			continue
+		}
+		if r >= 'A' && r <= 'F' {
+			continue
+		}
+		return false
+	}
+	return unicode.IsDigit(rune(value[0])) || (value[0] >= 'a' && value[0] <= 'f') || (value[0] >= 'A' && value[0] <= 'F')
 }

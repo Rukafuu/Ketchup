@@ -12,7 +12,7 @@ Detect and synchronize drift between your local workspace and the expected proje
 
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.19+-blue)](go.mod)
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/Reskyume.ketchup-fast-forward?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/Reskyume.ketchup-fast-forward?label=v0.3.0)](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)
 [![VS Code](https://img.shields.io/badge/vscode-1.85+-blue)](extension/package.json)
 
 <br />
@@ -33,7 +33,7 @@ Search for **"Ketchup Fast-Forward"** in VS Code Extensions.
 <tr>
 <td align="center" width="25%">
 <h3>Catch-up</h3>
-Summarizes what changed since your last session — filtering noise and surfacing what matters to <strong>your</strong> work.
+Summarizes what changed since your last session — with <strong>file-level summaries</strong> per commit, relevance filtering, and noise reduction.
 </td>
 <td align="center" width="25%">
 <h3>Safe by design</h3>
@@ -50,7 +50,7 @@ Sidebar panel, status bar, quick-fix actions, and auto-check — published as <s
 </tr>
 </table>
 
-> **Using Cursor?** Not in Cursor's marketplace yet. Install from VSIX: **Extensions → ... → Install from VSIX** → `extension/ketchup-fast-forward-0.2.0.vsix`
+> **Using Cursor?** Not in Cursor's marketplace yet. Install from VSIX: **Extensions → ... → Install from VSIX** → `extension/ketchup-fast-forward-0.3.0.vsix`
 
 ---
 
@@ -62,7 +62,7 @@ Sidebar panel, status bar, quick-fix actions, and auto-check — published as <s
 
 <br />
 
-*Run `ketchup catch-up` after time away — relevant commits surfaced, irrelevant events summarized.*
+*Run `ff catch-up` after time away — each commit shows which files changed and why it matters.*
 
 </div>
 
@@ -71,13 +71,14 @@ Sidebar panel, status bar, quick-fix actions, and auto-check — published as <s
 | Output | Meaning |
 |--------|---------|
 | `4 changes matter to your current work` | Commits scored as **relevant** to your current context |
-| `→ changed a critical configuration or dependency file` | Why Ketchup flagged each change |
+| `8 file(s): extension (package.json, ...) +2; CLI (main.go)` | **Summary of modified files** grouped by area |
+| `→ Critical files changed: package.json` | Why Ketchup flagged the commit as important |
 | `24 other events were ignored as irrelevant` | Noise filtered out — use `--show all` to inspect everything |
 
 ```bash
-ketchup catch-up                  # relevant changes only (default)
-ketchup catch-up --show all       # every event, tagged [RELEVANT] or [IGNORED]
-ketchup catch-up --show all --explain   # with relevance scores
+ff catch-up                         # relevant changes only (default)
+ff catch-up --show all              # every event with file summaries
+ff catch-up --show all --explain    # with relevance scores
 ```
 
 ---
@@ -295,7 +296,7 @@ Contributions welcome — fork, branch, PR. [MIT](LICENSE)
 
 | Destaque | |
 |----------|---|
-| **Catch-up** | Resume o que mudou — só o que importa pro seu contexto |
+| **Catch-up** | Resume o que mudou — com resumo dos arquivos alterados por commit |
 | **Seguro** | Checks read-only · sync com confirmação · Git fast-forward only |
 | **Extensão** | Painel, status bar e ações rápidas no editor |
 

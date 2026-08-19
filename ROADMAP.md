@@ -1,37 +1,33 @@
 # Roadmap de Desenvolvimento - Ketchup
 
-## Completado (v0.2.0)
+## Completado (v0.3.0)
 
 ### Core CLI
-- [x] **Git Provider** — Detecção de drift, status ahead/behind, upstream tracking
-- [x] **Dependencies Provider** — Suporte a npm/pnpm/yarn com detecção automática de lockfiles
-- [x] **Environment Provider** — Comparação entre `.env` e `.env.example` (auto-skip se source ausente)
-- [x] **JSON Output** — Flag `--json` em todos os comandos para integração
-- [x] **Sistema de Atualização Remota** — Módulo updater autônomo com checksum SHA-256
-- [x] **Script de Release** — Build multiplataforma automatizado (Windows, Linux, macOS)
+- [x] **Catch-up com resumo de arquivos** — Cada commit mostra arquivos alterados agrupados por área (`extension`, `CLI`, `core`, etc.)
+- [x] **Parser Git corrigido** — `git log` parseado corretamente com `--name-only -z`
+- [x] **Motivos específicos** — `Critical files changed: package.json` em vez de mensagem genérica
 - [x] **Alias `ff`** — Mesmo binário com help adaptado (`ketchup` / `ff`)
 - [x] **Catch-up configurável** — Modos `relevant` / `all`, flag `--explain`, seção `catchup` no YAML
 - [x] **UX do `diff`** — Mensagem quando limpo, `--drifted-only`, exit code 1 em drift, `--help`
 - [x] **`doctor` com sugestões** — Indica próximo comando (`status`, `diff`, `sync`, `catch-up`)
+- [x] **Environment auto-skip** — Provider `env` ignorado quando source file não existe
 
 ### Extensão VS Code
-- [x] **Ketchup Fast-Forward** — Publicada no VS Marketplace ([Reskyume.ketchup-fast-forward](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward))
-- [x] **Publisher Reskyume** — Conta configurada e extensão verificada
-- [x] **Ícone e README** — Assets de marketplace e documentação da extensão
-- [x] **Status Bar Item** — Indicador visual do estado do workspace (clean/drifted/error)
-- [x] **Quick-fix Buttons** — Ações contextuais nos findings da tree view
-- [x] **Comando Catch-up** — Integração do `catch-up` com settings `catchUpShow` / `catchUpExplain`
-- [x] **Auto-update Check** — Verificação automática de updates do core no startup
+- [x] **Ketchup Fast-Forward v0.3.0** — [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)
+- [x] **Metadados corrigidos** — Repositório apontando para [Rukafuu/Ketchup](https://github.com/Rukafuu/Ketchup)
 - [x] **Show Diff condicional** — Botão só aparece em providers com drift
+- [x] **Catch-up settings** — `catchUpShow` / `catchUpExplain` na extensão
 
-### Infraestrutura
-- [x] **Módulo Updater Testado** — Suite de testes unitários
-- [x] **Versionamento SemVer** — Comparação semântica de versões
-- [x] **Build `.vsix`** — Empacotamento via `@vscode/vsce`
+## Completado (v0.2.x)
+
+- [x] Git, Dependencies e Environment providers
+- [x] JSON output, updater remoto, release multiplataforma
+- [x] Status bar, quick-fix buttons, auto-update check
+- [x] Publicação inicial no VS Marketplace (publisher **Reskyume**)
 
 ---
 
-## Pendente para v0.3.0
+## Pendente para v0.4.0
 
 ### Testes
 - [ ] Testes para providers (Git, Dependencies, Environment)
@@ -58,10 +54,9 @@
 ## Status do Projeto
 
 ### Código
-- **CLI Go**: ~2800 linhas (providers + commands + updater + catch-up)
+- **CLI Go**: ~3000 linhas (providers + commands + catch-up + signals)
 - **Extensão TS**: ~550 linhas (tree provider + commands + status bar)
-- **Testes**: report + helpers CLI + updater
-- **Cobertura**: parcial (updater, report, helpers)
+- **Testes**: signals, git parser, report, helpers CLI, updater
 
 ### Plataformas suportadas
 - Windows (amd64, arm64)
@@ -69,15 +64,15 @@
 - macOS (amd64, arm64)
 
 ### Próximos passos imediatos
-1. Publicar no Open VSX para instalação nativa no Cursor
-2. Expandir cobertura de testes para >80%
-3. Configurar GitHub Actions (CI)
-4. Sincronizar metadados do Marketplace após updates de `package.json`
+1. Publicar v0.3.0 no VS Marketplace
+2. Publicar no Open VSX para instalação nativa no Cursor
+3. Expandir cobertura de testes para >80%
+4. Configurar GitHub Actions (CI)
 
 ---
 
 **Última atualização**: Agosto 2026  
-**Versão atual**: v0.2.0  
-**Extensão**: [Ketchup Fast-Forward](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward) (VS Marketplace)  
+**Versão atual**: v0.3.0  
+**Extensão**: [Ketchup Fast-Forward](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)  
 **Repositório**: [github.com/Rukafuu/Ketchup](https://github.com/Rukafuu/Ketchup)  
-**Próxima milestone**: v0.3.0 (Open VSX + testes + CI/CD)
+**Próxima milestone**: v0.4.0 (Open VSX + testes + CI/CD)

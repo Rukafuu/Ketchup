@@ -1,6 +1,7 @@
 package relevance
 
 import (
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -152,7 +153,7 @@ func (e *Engine) computeEventRelevance(event signals.NormalizedEvent) RelevanceS
 		if isCriticalFile(file) {
 			signal.Score += 25
 			signal.Reasons = append(signal.Reasons,
-				"This commit changed a critical configuration or dependency file")
+				formatCriticalFilesReason([]string{file}))
 		}
 	}
 
@@ -275,10 +276,11 @@ func (e *Engine) computeEventRelevanceWithContributions(event signals.Normalized
 		}
 	}
 	if len(criticalFiles) > 0 && !appliedRules["critical_file"] {
+		reason := formatCriticalFilesReason(criticalFiles)
 		contrib := Contribution{
 			Rule:    "critical_file",
 			Delta:   25,
-			Reason:  "This commit changed a critical configuration or dependency file",
+			Reason:  reason,
 			Matches: normalizePaths(criticalFiles),
 		}
 		contributions = append(contributions, contrib)
@@ -456,4 +458,26 @@ func normalizePath(path string) string {
 	// Clean the path
 	path = filepath.Clean(path)
 	return path
+}
+
+func formatCriticalFilesReason(files []string) string {
+	if len(files) == 0 {
+		return "This commit changed a critical configuration or dependency file"
+	}
+
+	limit := 3
+	if len(files) < limit {
+		limit = len(files)
+	}
+
+	names := make([]string, 0, limit)
+	for _, file := range files[:limit] {
+		names = append(names, filepath.Base(file))
+	}
+
+	reason := fmt.Sprintf("Critical files changed: %s", strings.Join(names, ", "))
+	if extra := len(files) - limit; extra > 0 {
+		reason += fmt.Sprintf(" (+%d more)", extra)
+	}
+	return reason
 }
