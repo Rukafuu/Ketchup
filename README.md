@@ -13,13 +13,14 @@ Detect and synchronize drift between your local workspace and the expected proje
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.19+-blue)](go.mod)
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/Reskyume.ketchup-fast-forward?label=v0.3.0)](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)
+[![Open VSX](https://img.shields.io/open-vsx/v/Reskyume/ketchup-fast-forward?label=Open%20VSX)](https://open-vsx.org/extension/Reskyume/ketchup-fast-forward)
 [![VS Code](https://img.shields.io/badge/vscode-1.85+-blue)](extension/package.json)
 
 <br />
 
 ### Ketchup Fast-Forward is live!
 
-**[Install on VS Code Marketplace →](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
+**[Install on VS Code Marketplace →](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)** · **[Open VSX (Cursor) →](https://open-vsx.org/extension/Reskyume/ketchup-fast-forward)**
 
 Search for **"Ketchup Fast-Forward"** in VS Code Extensions.
 
@@ -50,7 +51,7 @@ Sidebar panel, status bar, quick-fix actions, and auto-check — published as <s
 </tr>
 </table>
 
-> **Using Cursor?** Not in Cursor's marketplace yet. Install from VSIX: **Extensions → ... → Install from VSIX** → `extension/ketchup-fast-forward-0.3.0.vsix`
+> **Using Cursor?** Search **"Ketchup Fast-Forward"** in Extensions ([Open VSX](https://open-vsx.org/extension/Reskyume/ketchup-fast-forward)). VSIX is still an optional fallback: **Extensions → ... → Install from VSIX** → `extension/ketchup-fast-forward-0.3.0.vsix`
 
 ---
 
@@ -290,7 +291,7 @@ Contributions welcome — fork, branch, PR. [MIT](LICENSE)
 
 ### Extensão publicada!
 
-**[Instalar Ketchup Fast-Forward no VS Code →](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)**
+**[Instalar no VS Code →](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)** · **[Open VSX (Cursor) →](https://open-vsx.org/extension/Reskyume/ketchup-fast-forward)**
 
 <br />
 
@@ -308,7 +309,7 @@ ketchup status
 ketchup sync
 ```
 
-> **Cursor:** instale pelo VSIX em **Extensions → Install from VSIX**
+> **Cursor:** busque **"Ketchup Fast-Forward"** nas Extensões ([Open VSX](https://open-vsx.org/extension/Reskyume/ketchup-fast-forward))
 
 <br />
 
