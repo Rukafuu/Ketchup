@@ -17,6 +17,7 @@
 - [x] **Metadados corrigidos** — Repositório apontando para [Rukafuu/Ketchup](https://github.com/Rukafuu/Ketchup)
 - [x] **Show Diff condicional** — Botão só aparece em providers com drift
 - [x] **Catch-up settings** — `catchUpShow` / `catchUpExplain` na extensão
+- [x] **Open VSX** — [Ketchup Fast-Forward v0.3.0](https://open-vsx.org/extension/Reskyume/ketchup-fast-forward) (Cursor / VSCodium)
 
 ## Completado (v0.2.x)
 
@@ -36,7 +37,6 @@
 - [ ] Cobertura mínima de 80% do código
 
 ### Publicação e distribuição
-- [ ] Publicar no **Open VSX Registry** (marketplace do Cursor / VSCodium)
 - [ ] Pipeline CI/CD (build, test, release automático)
 - [ ] GitHub Actions para validar PRs
 
@@ -64,9 +64,8 @@
 - macOS (amd64, arm64)
 
 ### Próximos passos imediatos
-1. Publicar no Open VSX para instalação nativa no Cursor
-2. Expandir cobertura de testes para >80%
-3. Configurar GitHub Actions (CI)
+1. Expandir cobertura de testes para >80%
+2. Configurar GitHub Actions (CI)
 
 ---
 
@@ -74,4 +73,4 @@
 **Versão atual**: v0.3.0  
 **Extensão**: [Ketchup Fast-Forward](https://marketplace.visualstudio.com/items?itemName=Reskyume.ketchup-fast-forward)  
 **Repositório**: [github.com/Rukafuu/Ketchup](https://github.com/Rukafuu/Ketchup)  
-**Próxima milestone**: v0.4.0 (Open VSX + testes + CI/CD)
+**Próxima milestone**: v0.4.0 (testes + CI/CD)
